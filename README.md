@@ -1,6 +1,6 @@
-# Daily Log App
+# Daily Log App
 
-## Client
+## Client
 
 ### Development
 From the `client` dir:
