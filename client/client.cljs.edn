@@ -1,2 +1,7 @@
 ^{:css-dirs ["resources/public/css"]}
-{:main daily-log.core}
+{:main daily-log.core
+ :npm-deps false
+ :infer-externs true
+ :foreign-libs [{:file "dist/index.bundle.js"
+                 :provides ["date-fns"]
+                 :global-exports {date-fns "dateFns"}}]}
