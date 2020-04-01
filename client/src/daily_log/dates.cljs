@@ -11,3 +11,10 @@
 
 (defn today! []
   (js-date->date (js/Date.)))
+
+(defn add-days [d n]
+  (-> d
+      name
+      df/parseISO
+      (df/addDays n)
+      js-date->date))
