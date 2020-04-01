@@ -38,11 +38,17 @@
   {:date-being-edited :2020-04-01
    :activity-names {:a "Activity A"
                     :b "Activity B"
-                    :c "Activity C"}
+                    :c "Activity C"
+                    :d "Activity D"
+                    :e "Activity E"}
    :activity-types {:a :bool
                     :b :float
-                    :c :int}
-   :logs {:2020-03-31 {:a 1
+                    :c :int
+                    :d :int
+                    :e :int}
+   :logs {:2020-03-30 {:d 20
+                       :e 4}
+          :2020-03-31 {:a 1
                        :b 123
                        :c 3}
           :2020-04-01 {:a 0
