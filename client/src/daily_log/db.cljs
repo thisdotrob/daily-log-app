@@ -9,21 +9,20 @@
 
 (s/def ::activity-names (s/map-of ::activity-id ::activity-name))
 
+(s/def ::activity-type #{:bool :float :int :percentage})
+
+(s/def ::activity-types (s/map-of ::activity-id ::activity-type))
+
 (s/def ::date d/date?)
 
 (s/def ::date-being-edited ::date)
 
-(s/def ::type #{:bool :float :int :percentage})
-
-(s/def ::value int?)
-
-(s/def ::log (s/keys :req-un [::type ::value]))
-
 (s/def ::logs (s/map-of ::date
                         (s/map-of ::activity-id
-                                  ::log)))
+                                  int?)))
 
 (s/def ::db (s/keys :req-un [::activity-names
+                             ::activity-types
                              ::date-being-edited
                              ::logs]))
 
@@ -40,21 +39,12 @@
    :activity-names {:a "Activity A"
                     :b "Activity B"
                     :c "Activity C"}
-   :logs {:2020-03-31 {:a {:type :bool
-                           :value 1}
-                       :b {:type :float
-                           :value 123}
-                       :c {:type :int
-                           :value 3}}
-          :2020-04-01 {:a {:type :bool
-                           :value 0}
-                       :b {:type :float
-                           :value 456}
-                       :c {:type :int
-                           :value 5}}
-          :2020-04-02 {:a {:type :bool
-                           :value 0}
-                       :b {:type :float
-                           :value 0}
-                       :c {:type :int
-                           :value 0}}}})
+   :activity-types {:a :bool
+                    :b :float
+                    :c :int}
+   :logs {:2020-03-31 {:a 1
+                       :b 123
+                       :c 3}
+          :2020-04-01 {:a 0
+                       :b 456
+                       :c 5}}})
