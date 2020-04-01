@@ -1,11 +1,13 @@
 (ns daily-log.dates
   (:require [date-fns :as df]))
 
-(defn date-ISO-str? [s]
-  (-> s df/parseISO df/isValid))
+(defn date? [k]
+  (-> k name df/parseISO df/isValid))
 
-(defn date->ISO-str [d]
-  (df/formatISO d (clj->js {:representation "date"})))
+(defn- js-date->date [d]
+  (-> d
+      (df/formatISO (clj->js {:representation "date"}))
+      keyword))
 
 (defn today! []
-  (-> (js/Date.) date->ISO-str))
+  (js-date->date (js/Date.)))

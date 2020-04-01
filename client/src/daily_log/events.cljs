@@ -5,7 +5,7 @@
 
 (defn initialise-db [{:keys [today]} _]
   (println "event: initialise-db")
-  {:db {:date-being-edited today}})
+  {:db db/default-db})
 
 (defn move-date-being-edited [db [_ direction]]
   (println "event: move-date-being-edited," direction)
