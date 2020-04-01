@@ -1,1 +1,3 @@
-{:log-syntax-error-style :concise}
+{:log-syntax-error-style :concise
+ :auto-testing true
+ :watch-dirs ["src" "test"]}

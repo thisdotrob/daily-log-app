@@ -4,4 +4,4 @@
         com.bhauman/rebel-readline-cljs {:mvn/version "0.1.4"}
         reagent {:mvn/version "0.10.0"}
         re-frame {:mvn/version "0.12.0"}}
- :paths ["src" "target" "resources"]}
+ :paths ["src" "test" "target" "resources"]}
