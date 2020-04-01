@@ -2,18 +2,9 @@
   (:require [re-frame.core :as rf]
             [daily-log.dates :as d]))
 
-(defn visible-dates [db [_ col-count]]
-  (let [center-point (:date-being-edited db)
-        range-start (-> col-count
-                        (- 1)
-                        (/ -2))
-        range-end (-> col-count
-                      (- 1)
-                      (/ 2)
-                      (+ 1))
-        days (range range-start
-                    range-end)]
-    (map #(d/add-days center-point %) days)))
+(defn visible-dates [db _]
+  (map #(d/add-days (:date-being-edited db) %)
+       (range -2 3)))
 
 (defn visible-activity-ids [[logs visible-dates] _]
   (->> visible-dates

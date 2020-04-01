@@ -3,25 +3,11 @@
             [daily-log.subs :as sut]))
 
 (deftest visible-dates
-  (testing "returns :date-being-edited if col count is 1"
-    (let [date-being-edited :2020-04-01
-          db {:date-being-edited date-being-edited}
-          event nil
-          col-count 1]
-      (is (= [date-being-edited]
-             (sut/visible-dates db [event col-count])))))
-  (testing "returns a single sequential date either side of :date-being-edited if col count is 3"
+  (testing "returns two sequential dates either side of :date-being-edited"
     (let [db {:date-being-edited :2020-04-01}
-          event nil
-          col-count 3]
-      (is (= [:2020-03-31 :2020-04-01 :2020-04-02]
-             (sut/visible-dates db [event col-count])))))
-  (testing "returns two sequential dates either side of :date-being-edited if col count is 5"
-    (let [db {:date-being-edited :2020-04-01}
-          event nil
-          col-count 5]
+          event nil]
       (is (= [:2020-03-30 :2020-03-31 :2020-04-01 :2020-04-02 :2020-04-03]
-             (sut/visible-dates db [event col-count]))))))
+             (sut/visible-dates db [event]))))))
 
 (deftest visible-activity-ids
   (testing "returns empty set when there are no logs for the visible dates"

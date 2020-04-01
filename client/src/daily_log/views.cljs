@@ -2,24 +2,30 @@
   (:require [re-frame.core :as rf]))
 
 (defn table-header []
-  (let [col-count 3
-        visible-dates @(rf/subscribe [:visible-dates col-count])]
+  (let [visible-dates @(rf/subscribe [:visible-dates])]
     [:div.row
-     [:div.col.s3 "Activity"]
-     [:div.col.s3 (nth visible-dates 0)]
-     [:div.col.s3 (nth visible-dates 1)]
-     [:div.col.s3 (nth visible-dates 2)]]))
+     [:div.col.s2 "Activity"]
+     (for [d visible-dates]
+       [:div.col.s2 d])]))
+
+(defn log-val->display-str [type val]
+  (cond
+    (= :bool type) (if (= 1 val) "Yes" "No")
+    (= :percentage type) (str val "%")
+    (= :float type) (str (/ val 1000))
+    :else (str val)))
 
 (defn activity-cell [activity-id date]
-  (let [log @(rf/subscribe [:log activity-id date])]
-    [:div.col.s3 (:value log)]))
+  (let [log @(rf/subscribe [:log activity-id date])
+        t @(rf/subscribe [:activity-type activity-id])]
+    [:div.col.s2 (log-val->display-str t log)]))
 
 (defn activity-row [activity-id]
   (let [activity-name @(rf/subscribe [:activity-name activity-id])
-        dates @(rf/subscribe [:visible-dates])]
+        visible-dates @(rf/subscribe [:visible-dates])]
     [:div
-     [:div.col.s3 activity-name]
-     (for [d dates]
+     [:div.col.s2 activity-name]
+     (for [d visible-dates]
        [activity-cell activity-id d])]))
 
 (defn table-body []
