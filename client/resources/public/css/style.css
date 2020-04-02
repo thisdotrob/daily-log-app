@@ -79,6 +79,7 @@
 
 .dropdown-content {
     display: none;
+    width: -webkit-fill-available;
 }
 
 .dropdown-content.interacting {
