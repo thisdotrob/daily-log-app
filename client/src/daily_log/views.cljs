@@ -1,6 +1,20 @@
 (ns daily-log.views
   (:require [reagent.core :as r]
-            [re-frame.core :as rf]))
+            [re-frame.core :as rf]
+            [daily-log.dates :as d]))
+
+(defn header []
+  (let [visible-dates (rf/subscribe [:visible-dates])
+        date-being-edited (rf/subscribe [:date-being-edited])]
+    [:div.row.mb0
+     [:div.row.valign-wrapper.mb0.teal.lighten-3
+      [:div.col.s2 "Activity"]
+      (for [d @visible-dates]
+        ^{:key d} [:div.col.s2.center-align
+                   [:div.row.mb1.mt1 (d/->MMM-str d)]
+                   (if (= d @date-being-edited)
+                     [:div.row.mb2 [:div.mb0.mt0.circle-h5.white.lighten-1 (d/->DD-str d)]]
+                     [:div.row.mb2 [:div.mb0.mt0.circle-h5.teal.lighten-3 (d/->DD-str d)]])])]]))
 
 (defn log-val->display-str [type val]
   (cond
@@ -20,27 +34,15 @@
     [:div.row
      [:div.col.s2 activity-name]
      (for [d visible-dates]
+       ^{:key (str activity-id d)}
        [activity-cell activity-id d])]))
 
-(defn new-activity-row []
-  [:div.row
-   [:div.col.input-field.s8
-    [:i.material-icons.prefix "playlist_add"]
-    [:input {:id "new_activity_name" :type "text"}]
-    [:label {:for "new_activity_name"} "Activity Name"]]
-   [:div.col.s4
-    {:div.select-wrapper
-     [:input.select-dropdown.dropdown-trigger {:type "text"
-                                               :readonly true
-                                               :data-target "select-options-99"}]
-     [:ul.select-dropdown.dropdown-content {:id "select-options-99"
-                                            :tab-index 0}
-      [:li.selected {:id "select-options-99-0" :tabindex 0} [:span "Choose a type..."]]
-      [:li.selected {:id "select-options-99-1" :tabindex 0} [:span "Yes/No"]]
-      [:li.selected {:id "select-options-99-1" :tabindex 0} [:span "Whole number"]]]
-     [:svg.caret {:height 24 :view-box "0 0 24 24" :width "24" :xmlns "http://www.w3.org/2000/svg"}
-      [:path {:d "M7 10l5 5 5-5z"}]
-      [:path {:d "M0 0h24v24H0z" :fill "none"}]]}]])
+(defn body []
+  [:div.row {:style {:padding-top "10px"}}
+   (let [activity-ids @(rf/subscribe [:visible-activity-ids])]
+     (for [id activity-ids]
+       ^{:key id}
+       [activity-row id]))])
 
 (def vals->display-vals
   {:bool "Yes/No"
@@ -48,7 +50,7 @@
    :float "Decimal number"
    :percentage "Percentage"})
 
-(defn new-activity-input-row []
+(defn new-activity-input []
   (let [dropdown-clicked? (r/atom false)
         dropdown-value (r/atom nil)
         dropdown-options [:bool :int :float :percentage]
@@ -73,9 +75,10 @@
        [:div.col.input-field.s4 {:on-click #(swap! dropdown-clicked? not)}
         [:div
          [:input.select-dropdown.dropdown-trigger {:type "text"
-                                                   :readonly "true"
-                                                   :value (and @dropdown-value
-                                                               (vals->display-vals @dropdown-value))
+                                                   :read-only true
+                                                   :value (or (and @dropdown-value
+                                                                   (vals->display-vals @dropdown-value))
+                                                              "")
                                                    :data-target "select-options"}]
          [:ul.select-dropdown.dropdown-content {:id "select-options"
                                                 :tab-index 0
@@ -91,8 +94,8 @@
                                                         :transform "scaleX(1) scaleY(1)"}}
           (doall
            (for [o dropdown-options]
-             ^{:key o} [:li {:tabindex 0 :classname (if (= o @dropdown-value)
-                                                      "selected")}
+             ^{:key o} [:li {:tab-index 0 :class-name (if (= o @dropdown-value)
+                                                        "selected")}
                         [:span {:on-click #(reset! dropdown-value o)} (vals->display-vals o)]]))]
          [:svg.caret {:style {:position "absolute"
                               :right "10px"
@@ -112,15 +115,8 @@
          "Activity type"]]])))
 
 (defn app []
-  (let [visible-dates @(rf/subscribe [:visible-dates])
-        activity-ids @(rf/subscribe [:visible-activity-ids])]
+  (let []
     [:div.container.grey.lighten-3.z-depth-1 {:style {:margin-top "10px"}}
-     [:div.row {:style {:margin-bottom 0}}
-      [:div.row.teal.lighten-2 {:style {:margin-bottom 0}}
-       [:div.col.s2 "Activity"]
-       (for [d visible-dates]
-         [:div.col.s2.center-align d])]]
-     [:div.row {:style {:padding-top "10px"}}
-      (for [id activity-ids]
-        [activity-row id])]
-     [new-activity-input-row]]))
+     [header]
+     [body]
+     [new-activity-input]]))
