@@ -59,7 +59,10 @@
     (fn []
       [:div.row
        [:div.col.input-field.s8
-        [:i.material-icons.prefix "playlist_add"]
+        [:i.material-icons.prefix {:class (if (or @dropdown-clicked?
+                                                  @text-input-entering?)
+                                            "active")}
+         "playlist_add"]
         [:input {:id "new_activity_name"
                  :type "text"
                  :value @text-input-value
@@ -94,7 +97,7 @@
                                                         :transform "scaleX(1) scaleY(1)"}}
           (doall
            (for [o dropdown-options]
-             ^{:key o} [:li {:tab-index 0 :class-name (if (= o @dropdown-value)
+             ^{:key o} [:li {:tab-index 0 :class (if (= o @dropdown-value)
                                                         "selected")}
                         [:span {:on-click #(reset! dropdown-value o)} (vals->display-vals o)]]))]
          [:svg.caret {:style {:position "absolute"
