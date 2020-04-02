@@ -48,12 +48,13 @@
        ^{:key id}
        [activity-row id]))])
 
-(defn text-input [value interacting?]
+(defn text-input [value interacting? on-submit]
   (let [interacting-internal? (r/atom false)]
     (reset! value "")
     (fn [_ _]
     [:div.input-field
-     [:i.material-icons.prefix {:class (if @interacting? "active")}
+     [:i.material-icons.prefix {:class (if @interacting? "active")
+                                :on-click on-submit}
       "playlist_add"]
      [:input {:id "new_activity_name"
               :type "text"
@@ -119,18 +120,23 @@
    :float "Decimal number"
    :percentage "Percentage"})
 
-(defn new-activity-input []
+(defn new-activity-form []
   (let [interacting? (r/atom false)
-        dropdown-selected-option (r/atom nil)
-        text-input-value (r/atom "")]
+        new-activity-type (r/atom nil)
+        new-activity-name (r/atom "")
+        on-submit #(do (rf/dispatch [:add-activity @new-activity-type
+                                                   @new-activity-name])
+                       (reset! new-activity-type nil)
+                       (reset! new-activity-name ""))]
     (fn []
       [:div.row
        [:div.col.s8
-        [text-input text-input-value
-                    interacting?]]
+        [text-input new-activity-name
+                    interacting?
+                    on-submit]]
        [:div.col.s4
         [dropdown activity-type-option->display-str
-                  dropdown-selected-option
+                  new-activity-type
                   interacting?
                   "Activity Type"]]])))
 
@@ -139,4 +145,4 @@
     [:div.container.grey.lighten-3.z-depth-1.mt2
      [header]
      [body]
-     [new-activity-input]]))
+     [new-activity-form]]))

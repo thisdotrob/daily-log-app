@@ -4,10 +4,25 @@
             [daily-log.db :as db]))
 
 (defn initialise-db [{:keys [today]} _]
-  {:db db/default-db})
+  {:db (assoc db/default-db
+              :date-being-edited today)})
 
-(defn move-date-being-edited [db [_ direction]]
-  db)
+(defn add-activity [{:keys [db id]} [_ activity-type activity-name]]
+  (let [date-being-edited (:date-being-edited db)]
+    {:db (-> db
+             (assoc-in [:logs date-being-edited id] 0)
+             (assoc-in [:activity-types id] activity-type)
+             (assoc-in [:activity-names id] activity-name))}))
+
+(rf/reg-cofx
+ :today
+ (fn [cofx _]
+   (assoc cofx :today (d/today!))))
+
+(rf/reg-cofx
+ :random-id
+ (fn [cofx _]
+   (assoc cofx :id (-> (random-uuid) str keyword))))
 
 (rf/reg-event-fx
  :initialise-db
@@ -15,12 +30,8 @@
   db/check-spec-interceptor]
  initialise-db)
 
-(rf/reg-event-db
- :move-date-being-edited
- [db/check-spec-interceptor]
- move-date-being-edited)
-
-(rf/reg-cofx
- :today
- (fn [cofx _]
-   (assoc cofx :today (d/today!))))
+(rf/reg-event-fx
+ :add-activity
+ [(rf/inject-cofx :random-id)
+  db/check-spec-interceptor]
+ add-activity)
