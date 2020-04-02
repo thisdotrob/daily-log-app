@@ -9,12 +9,16 @@
     [:div.row.mb0
      [:div.row.valign-wrapper.mb0.teal.lighten-3
       [:div.col.s2 "Activity"]
-      (for [d @visible-dates]
-        ^{:key d} [:div.col.s2.center-align
-                   [:div.row.mb1.mt1 (d/->MMM-str d)]
-                   (if (= d @date-being-edited)
-                     [:div.row.mb2 [:div.mb0.mt0.circle-h5.white.lighten-1 (d/->DD-str d)]]
-                     [:div.row.mb2 [:div.mb0.mt0.circle-h5.teal.lighten-3 (d/->DD-str d)]])])]]))
+      (doall
+       (for [d @visible-dates]
+         ^{:key d}
+         [:div.col.s2.center-align
+          [:div.row.mb1.mt1 (d/->MMM-str d)]
+          [:div.row.mb2
+           [:div.mb0.mt0.circle-h5 {:class (if (= d @date-being-edited)
+                                             "white lighten-1"
+                                             "teal lighten-3")}
+            (d/->DD-str d)]]]))]]))
 
 (defn log-val->display-str [type val]
   (cond
@@ -38,88 +42,101 @@
        [activity-cell activity-id d])]))
 
 (defn body []
-  [:div.row {:style {:padding-top "10px"}}
+  [:div.row.pt2
    (let [activity-ids @(rf/subscribe [:visible-activity-ids])]
      (for [id activity-ids]
        ^{:key id}
        [activity-row id]))])
 
-(def vals->display-vals
+(defn text-input [value interacting?]
+  (let [interacting-internal? (r/atom false)]
+    (reset! value "")
+    (fn [_ _]
+    [:div.input-field
+     [:i.material-icons.prefix {:class (if @interacting? "active")}
+      "playlist_add"]
+     [:input {:id "new_activity_name"
+              :type "text"
+              :value @value
+              :on-click #(do (reset! interacting? true)
+                             (reset! interacting-internal? true))
+              :on-blur #(do (reset! interacting? false)
+                            (reset! interacting-internal? false))
+              :on-change #(reset! value (-> % .-target .-value))}]
+     [:label {:class (str (if (not= "" @value)
+                            "selected ")
+                          (if @interacting-internal?
+                            "interacting"))}
+      "Activity Name"]])))
+
+(defn dropdown [option->display-str selected-option interacting? label-text]
+  (let [options (keys option->display-str)
+        interacting-internal? (r/atom false)]
+    (reset! selected-option nil)
+    (fn [_ _ _]
+    [:div.input-field
+     [:div
+      [:input.select-dropdown.dropdown-trigger
+       {:type "text"
+        :on-click #(do (reset! interacting-internal? true)
+                       (reset! interacting? true))
+        :read-only true
+        :data-target "select-options"
+        :value (or (some-> @selected-option option->display-str)
+                   "")}]
+      [:ul.select-dropdown.dropdown-content
+       {:id "select-options"
+        :tab-index 0
+        :class (if @interacting-internal? "interacting")
+        :style {:height (str (* 50 (count options))
+                             "px")}}
+       (doall
+        (for [o options]
+          ^{:key o}
+          [:li {:tab-index 0
+                :class (if (= o @selected-option) "selected")
+                :on-click #(do (reset! selected-option o)
+                               (reset! interacting-internal? false)
+                               (reset! interacting? false))}
+           [:span (option->display-str o)]]))]
+      [:svg.caret {:on-click #(do (reset! interacting-internal? true)
+                                  (reset! interacting? true))
+                   :height 24
+                   :view-box "0 0 24 24"
+                   :width 24
+                   :xmlns "http://www.w3.org/2000/svg"}
+       [:path {:d "M7 10l5 5 5-5z"}]
+       [:path {:d "M0 0h24v24H0z" :fill "none"}]]]
+     [:label {:class (str (if (some? @selected-option)
+                            "selected ")
+                          (if @interacting-internal?
+                            "interacting"))}
+      label-text]])))
+
+(def activity-type-option->display-str
   {:bool "Yes/No"
    :int "Whole number"
    :float "Decimal number"
    :percentage "Percentage"})
 
 (defn new-activity-input []
-  (let [dropdown-clicked? (r/atom false)
-        dropdown-value (r/atom nil)
-        dropdown-options [:bool :int :float :percentage]
-        text-input-entering? (r/atom false)
+  (let [interacting? (r/atom false)
+        dropdown-selected-option (r/atom nil)
         text-input-value (r/atom "")]
     (fn []
       [:div.row
-       [:div.col.input-field.s8
-        [:i.material-icons.prefix {:class (if (or @dropdown-clicked?
-                                                  @text-input-entering?)
-                                            "active")}
-         "playlist_add"]
-        [:input {:id "new_activity_name"
-                 :type "text"
-                 :value @text-input-value
-                 :on-click #(reset! text-input-entering? true)
-                 :on-blur #(reset! text-input-entering? false)
-                 :on-change #(reset! text-input-value
-                                     (-> % .-target .-value))}]
-        [:label (merge {:for "new_activity_name"}
-                       (if (or @text-input-entering?
-                               (not= "" @text-input-value))
-                         {:style {:transform "translateY(-14px) scale(0.8)"}}))
-         "Activity Name"]]
-       [:div.col.input-field.s4 {:on-click #(swap! dropdown-clicked? not)}
-        [:div
-         [:input.select-dropdown.dropdown-trigger {:type "text"
-                                                   :read-only true
-                                                   :value (or (and @dropdown-value
-                                                                   (vals->display-vals @dropdown-value))
-                                                              "")
-                                                   :data-target "select-options"}]
-         [:ul.select-dropdown.dropdown-content {:id "select-options"
-                                                :tab-index 0
-                                                :style {:display (if @dropdown-clicked?
-                                                                   "block"
-                                                                   "none")
-                                                        :width "213.031px"
-                                                        :left "10px"
-                                                        :top "10px"
-                                                        :height "200px"
-                                                        :transform-origin "0px 0px"
-                                                        :opacity "1"
-                                                        :transform "scaleX(1) scaleY(1)"}}
-          (doall
-           (for [o dropdown-options]
-             ^{:key o} [:li {:tab-index 0 :class (if (= o @dropdown-value)
-                                                        "selected")}
-                        [:span {:on-click #(reset! dropdown-value o)} (vals->display-vals o)]]))]
-         [:svg.caret {:style {:position "absolute"
-                              :right "10px"
-                              :top "0"
-                              :bottom "0"
-                              :margin "auto 0"
-                              :z-index "0"
-                              :fill "rgba(0,0,0,0.87)"}
-                      :height 24 :view-box "0 0 24 24" :width "24" :xmlns "http://www.w3.org/2000/svg"}
-          [:path {:d "M7 10l5 5 5-5z"}]
-          [:path {:d "M0 0h24v24H0z" :fill "none"}]]]
-        [:label (merge {}
-                       (if (some? @dropdown-value)
-                         {:style {:transform "translateY(-14px) scale(0.8)"}})
-                       (if @dropdown-clicked?
-                         {:style {:color "#26a69a" :transform "translateY(-14px) scale(0.8)"}}))
-         "Activity type"]]])))
+       [:div.col.s8
+        [text-input text-input-value
+                    interacting?]]
+       [:div.col.s4
+        [dropdown activity-type-option->display-str
+                  dropdown-selected-option
+                  interacting?
+                  "Activity Type"]]])))
 
 (defn app []
   (let []
-    [:div.container.grey.lighten-3.z-depth-1 {:style {:margin-top "10px"}}
+    [:div.container.grey.lighten-3.z-depth-1.mt2
      [header]
      [body]
      [new-activity-input]]))
