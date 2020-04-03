@@ -29,3 +29,51 @@
                  :activity-names
                  id))))))
 
+(deftest inc-log
+  (let [date :2020-04-03
+        activity-id :ee58d735-4c66-4565-9113-e50872a5a2ed
+        bool-activity-id :6906a4a9-149b-4a4d-9507-8772501ebbb5
+        db {:activity-types {activity-id :int
+                             bool-activity-id :bool}
+            :logs {date {activity-id 0
+                         bool-activity-id 0}}}]
+    (testing "It increments the value of an non :bool log by the number provided"
+      (is (= 1
+             (-> (sut/inc-log db [nil date activity-id 1])
+                 :logs
+                 date
+                 activity-id)))
+      (is (= 2
+             (-> (sut/inc-log db [nil date activity-id 2])
+                 :logs
+                 date
+                 activity-id))))
+    (testing "It doesn't increment the value of a :bool log by more than 1"
+      (is (= 1
+             (-> (sut/inc-log db [nil date bool-activity-id 4])
+                 :logs
+                 date
+                 bool-activity-id))))))
+
+(deftest dec-log
+  (let [date :2020-04-03
+        activity-id :ee58d735-4c66-4565-9113-e50872a5a2ed
+        db {:activity-types {activity-id :int}
+            :logs {date {activity-id 2}}}]
+    (testing "It decrements the value of a positive log by the number provided"
+      (is (= 1
+             (-> (sut/dec-log db [nil date activity-id 1])
+                 :logs
+                 date
+                 activity-id)))
+      (is (= 0
+             (-> (sut/dec-log db [nil date activity-id 2])
+                 :logs
+                 date
+                 activity-id))))
+    (testing "It doesn't decrement the value of a log past zero"
+      (is (= 0
+             (-> (sut/dec-log db [nil date activity-id 4])
+                 :logs
+                 date
+                 activity-id))))))

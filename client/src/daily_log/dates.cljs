@@ -35,3 +35,6 @@
   (-> d
       date->js-date
       (df/format "EEE")))
+
+(defn get-time! []
+  (df/getTime (js/Date.)))

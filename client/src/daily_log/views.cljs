@@ -3,7 +3,7 @@
             [re-frame.core :as rf]
             [daily-log.dates :as d]))
 
-(defn header []
+(defn table-header []
   (let [visible-dates (rf/subscribe [:visible-dates])
         date-being-edited (rf/subscribe [:date-being-edited])]
     [:div.row.mb0
@@ -22,15 +22,37 @@
 
 (defn log-val->display-str [type val]
   (cond
-    (= :bool type) (if (= 1 val) "Yes" "No")
+    (= :bool type) (if (zero? val) "No" "Yes")
     (= :percentage type) (str val "%")
     (= :float type) (str (/ val 1000))
     :else (str val)))
 
+(defn on-wheel-convert [wheel-delta last-scroll time-now]
+  (let [time-delta (- time-now last-scroll)]
+    (if (< time-delta 500)
+      0
+      wheel-delta)))
+
 (defn activity-cell [activity-id date]
-  (let [log @(rf/subscribe [:log activity-id date])
-        t @(rf/subscribe [:activity-type activity-id])]
-    [:div.col.s2.center-align (log-val->display-str t log)]))
+  (let [t @(rf/subscribe [:activity-type activity-id])
+        last-scroll (atom d/get-time!)]
+    (fn [_ _]
+      (let [log @(rf/subscribe [:log activity-id date])]
+        [:div.col.s2.center-align
+         {:on-wheel #(let [time-now (d/get-time!)
+                           converted (on-wheel-convert (.-deltaY %)
+                                                       @last-scroll
+                                                       time-now)]
+                       (if (< converted 0) (rf/dispatch [:dec-log
+                                                         date
+                                                         activity-id
+                                                         (- converted)]))
+                       (if (> converted 0) (rf/dispatch [:inc-log
+                                                         date
+                                                         activity-id
+                                                         converted]))
+                       (if (not= 0 converted) (reset! last-scroll time-now)))}
+         (log-val->display-str t log)]))))
 
 (defn activity-row [activity-id]
   (let [activity-name @(rf/subscribe [:activity-name activity-id])
@@ -41,7 +63,7 @@
        ^{:key (str activity-id d)}
        [activity-cell activity-id d])]))
 
-(defn body []
+(defn table-body []
   [:div.row.pt2
    (let [activity-ids @(rf/subscribe [:visible-activity-ids])]
      (for [id activity-ids]
@@ -143,6 +165,6 @@
 (defn app []
   (let []
     [:div.container.grey.lighten-3.z-depth-1.mt2
-     [header]
-     [body]
+     [table-header]
+     [table-body]
      [new-activity-form]]))
