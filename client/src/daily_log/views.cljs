@@ -21,38 +21,25 @@
             (d/->DD-str d)]]]))]]))
 
 (defn log-val->display-str [type val]
-  (cond
-    (= :bool type) (if (zero? val) "No" "Yes")
-    (= :percentage type) (str val "%")
-    (= :float type) (str (/ val 1000))
-    :else (str val)))
-
-(defn on-wheel-convert [wheel-delta last-scroll time-now]
-  (let [time-delta (- time-now last-scroll)]
-    (if (< time-delta 500)
-      0
-      wheel-delta)))
+  (if (= :bool type)
+    (if (zero? val) "No" "Yes")
+    (str val)))
 
 (defn activity-cell [activity-id date]
-  (let [t @(rf/subscribe [:activity-type activity-id])
-        last-scroll (atom d/get-time!)]
+  (let [t (rf/subscribe [:activity-type activity-id])
+        log (rf/subscribe [:log activity-id date])
+        timeout (atom nil)]
     (fn [_ _]
-      (let [log @(rf/subscribe [:log activity-id date])]
-        [:div.col.s2.center-align
-         {:on-wheel #(let [time-now (d/get-time!)
-                           converted (on-wheel-convert (.-deltaY %)
-                                                       @last-scroll
-                                                       time-now)]
-                       (if (< converted 0) (rf/dispatch [:dec-log
-                                                         date
-                                                         activity-id
-                                                         (- converted)]))
-                       (if (> converted 0) (rf/dispatch [:inc-log
-                                                         date
-                                                         activity-id
-                                                         converted]))
-                       (if (not= 0 converted) (reset! last-scroll time-now)))}
-         (log-val->display-str t log)]))))
+      [:div.col.s2.center-align
+       [:span.cell-val.unselectable.clickable
+        {:on-mouse-down
+         (fn []
+           (do (rf/dispatch [:inc-log activity-id date])
+               (reset! timeout
+                       (js/setTimeout #(rf/dispatch [:reset-log activity-id date])
+                                      1000))))
+         :on-mouse-up #(js/clearTimeout @timeout)}
+        (log-val->display-str @t @log)]])))
 
 (defn activity-row [activity-id]
   (let [activity-name @(rf/subscribe [:activity-name activity-id])
@@ -75,8 +62,9 @@
     (reset! value "")
     (fn [_ _]
     [:div.input-field
-     [:i.material-icons.prefix {:class (if @interacting? "active")
-                                :on-click on-submit}
+     [:i.material-icons.prefix.unselectable.clickable
+      {:class (if @interacting? "active")
+       :on-click on-submit}
       "playlist_add"]
      [:input {:id "new_activity_name"
               :type "text"
@@ -122,12 +110,13 @@
                                (reset! interacting-internal? false)
                                (reset! interacting? false))}
            [:span (option->display-str o)]]))]
-      [:svg.caret {:on-click #(do (reset! interacting-internal? true)
-                                  (reset! interacting? true))
-                   :height 24
-                   :view-box "0 0 24 24"
-                   :width 24
-                   :xmlns "http://www.w3.org/2000/svg"}
+      [:svg.caret.clickable
+       {:on-click #(do (reset! interacting-internal? true)
+                       (reset! interacting? true))
+        :height 24
+        :view-box "0 0 24 24"
+        :width 24
+        :xmlns "http://www.w3.org/2000/svg"}
        [:path {:d "M7 10l5 5 5-5z"}]
        [:path {:d "M0 0h24v24H0z" :fill "none"}]]]
      [:label {:class (str (if (some? @selected-option)
@@ -138,9 +127,7 @@
 
 (def activity-type-option->display-str
   {:bool "Yes/No"
-   :int "Whole number"
-   :float "Decimal number"
-   :percentage "Percentage"})
+   :int "Whole number"})
 
 (defn new-activity-form []
   (let [interacting? (r/atom false)

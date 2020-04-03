@@ -9,7 +9,7 @@
 
 (s/def ::activity-names (s/map-of ::activity-id ::activity-name))
 
-(s/def ::activity-type #{:bool :float :int :percentage})
+(s/def ::activity-type #{:bool :int})
 
 (s/def ::activity-types (s/map-of ::activity-id ::activity-type))
 

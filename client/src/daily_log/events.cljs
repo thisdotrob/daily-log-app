@@ -14,18 +14,14 @@
              (assoc-in [:activity-types id] activity-type)
              (assoc-in [:activity-names id] activity-name))}))
 
-(defn inc-log [db [_ date activity-id n]]
+(defn inc-log [db [_ activity-id date]]
   (let [activity-type (get-in db [:activity-types activity-id])]
     (if (= :bool activity-type)
       (assoc-in db [:logs date activity-id] 1)
-      (update-in db [:logs date activity-id] (partial + n)))))
+      (update-in db [:logs date activity-id] inc))))
 
-(defn dec-log [db [_ date activity-id n]]
-  (println "dec-log" n)
-  (update-in db [:logs date activity-id] #(let [new-val (- % n)]
-                                            (if (< new-val 0)
-                                              0
-                                              new-val))))
+(defn reset-log [db [_ activity-id date]]
+  (assoc-in db [:logs date activity-id] 0))
 
 (rf/reg-cofx
  :today
@@ -55,6 +51,6 @@
  inc-log)
 
 (rf/reg-event-db
- :dec-log
+ :reset-log
  db/check-spec-interceptor
- dec-log)
+ reset-log)

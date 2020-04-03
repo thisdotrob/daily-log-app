@@ -37,43 +37,37 @@
                              bool-activity-id :bool}
             :logs {date {activity-id 0
                          bool-activity-id 0}}}]
-    (testing "It increments the value of an non :bool log by the number provided"
+    (testing "It increments the value of an non :bool log"
       (is (= 1
-             (-> (sut/inc-log db [nil date activity-id 1])
+             (-> (sut/inc-log db [nil activity-id date])
                  :logs
                  date
                  activity-id)))
       (is (= 2
-             (-> (sut/inc-log db [nil date activity-id 2])
+             (-> (sut/inc-log db [nil activity-id date])
+                 (sut/inc-log [nil activity-id date])
                  :logs
                  date
                  activity-id))))
     (testing "It doesn't increment the value of a :bool log by more than 1"
       (is (= 1
-             (-> (sut/inc-log db [nil date bool-activity-id 4])
+             (-> (sut/inc-log db [nil bool-activity-id date])
+                 :logs
+                 date
+                 bool-activity-id)))
+      (is (= 1
+             (-> (sut/inc-log db [nil bool-activity-id date])
+                 (sut/inc-log [nil bool-activity-id date])
                  :logs
                  date
                  bool-activity-id))))))
 
-(deftest dec-log
+(deftest reset-log
   (let [date :2020-04-03
         activity-id :ee58d735-4c66-4565-9113-e50872a5a2ed
-        db {:activity-types {activity-id :int}
-            :logs {date {activity-id 2}}}]
-    (testing "It decrements the value of a positive log by the number provided"
-      (is (= 1
-             (-> (sut/dec-log db [nil date activity-id 1])
-                 :logs
-                 date
-                 activity-id)))
-      (is (= 0
-             (-> (sut/dec-log db [nil date activity-id 2])
-                 :logs
-                 date
-                 activity-id))))
-    (testing "It doesn't decrement the value of a log past zero"
-      (is (= 0
-             (-> (sut/dec-log db [nil date activity-id 4])
-                 :logs
-                 date
-                 activity-id))))))
+        db {:logs {date {activity-id 20}}}]
+    (testing "It resets the value of the log to zero"
+      (is (zero? (-> (sut/reset-log db [nil activity-id date])
+                     :logs
+                     date
+                     activity-id))))))
