@@ -3,3 +3,6 @@ client/node_modules
 client/.cpcache
 client/dist
 client/.rebel_readline_history
+server/.cpcache
+server/.rebel_readline_history
+
