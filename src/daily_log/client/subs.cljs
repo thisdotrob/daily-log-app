@@ -1,6 +1,6 @@
-(ns daily-log.subs
+(ns daily-log.client.subs
   (:require [re-frame.core :as rf]
-            [daily-log.dates :as d]))
+            [daily-log.client.dates :as d]))
 
 (defn date-being-edited [db _]
   (:date-being-edited db))

@@ -4,7 +4,7 @@
             [clojure.tools.namespace.repl :as tools]
             [next.jdbc :as jdbc]
             [next.jdbc.sql :as sql]
-            [daily-log.core :as daily-log]))
+            [daily-log.server.core :as daily-log]))
 
 (defonce server (atom nil))
 

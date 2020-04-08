@@ -1,7 +1,7 @@
-(ns daily-log.events
+(ns daily-log.client.events
   (:require [re-frame.core :as rf]
-            [daily-log.dates :as d]
-            [daily-log.db :as db]))
+            [daily-log.client.dates :as d]
+            [daily-log.client.db :as db]))
 
 (defn initialise-db [{:keys [today]} _]
   {:db (assoc db/default-db

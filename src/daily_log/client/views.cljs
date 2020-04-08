@@ -1,7 +1,7 @@
-(ns daily-log.views
+(ns daily-log.client.views
   (:require [reagent.core :as r]
             [re-frame.core :as rf]
-            [daily-log.dates :as d]))
+            [daily-log.client.dates :as d]))
 
 (defn table-header []
   (let [visible-dates (rf/subscribe [:visible-dates])

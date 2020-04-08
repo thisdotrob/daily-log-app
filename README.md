@@ -1,14 +1,19 @@
 # Daily Log App
 
-## Client
+## Development
+Start the server compiler, repl and service:
+```
+clojure -A:client-server
+(start-dev)
+```
 
-### Development
-From the `client` dir:
+Install deps and start the client compiler & repl:
 ```
 npm i
 npx webpack
-clojure -m figwheel.main --build client --repl
+clojure -A:client-dev
 ```
 
-The app will be available at `http://localhost:9500`
+The app will be available at `http://localhost:8890/index.html`
+
 and the test runner at `http://localhost:9500/figwheel-extra-main/auto-testing`.

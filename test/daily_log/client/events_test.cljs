@@ -1,6 +1,6 @@
 (ns daily-log.events-test
   (:require [cljs.test :refer (deftest is testing)]
-            [daily-log.events :as sut]))
+            [daily-log.client.events :as sut]))
 
 (deftest add-activity
   (let [id :ee58d735-4c66-4565-9113-e50872a5a2ed

@@ -1,4 +1,4 @@
-(ns daily-log.core
+(ns daily-log.server.core
   (:require [io.pedestal.http :as http]
             [io.pedestal.http.body-params :as params]
             [io.pedestal.http.route :as route]
@@ -143,7 +143,9 @@
 (def service-map
   {::http/routes routes
    ::http/type   :jetty
-   ::http/port   8890})
+   ::http/port   8890
+   ::http/secure-headers {:content-security-policy-settings "object-src 'none'; script-src 'self' 'unsafe-eval' 'unsafe-inline'"}
+   ::http/resource-path "/public"})
 
 (defn start []
   (http/start (http/create-server service-map)))
