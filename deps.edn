@@ -1,18 +1,19 @@
-{:deps {org.clojure/clojure             {:mvn/version "1.10.1"}
-        org.clojure/clojurescript       {:mvn/version "1.10.597"}
-        io.pedestal/pedestal.service    {:mvn/version "0.5.7"}
-        io.pedestal/pedestal.route      {:mvn/version "0.5.7"}
-        io.pedestal/pedestal.jetty      {:mvn/version "0.5.7"}
-        org.postgresql/postgresql       {:mvn/version "42.2.10"}
-        seancorfield/next.jdbc          {:mvn/version "1.0.409"}
-        com.bhauman/figwheel-main       {:mvn/version "0.2.3"}
-        com.bhauman/rebel-readline-cljs {:mvn/version "0.1.4"}
-        reagent                         {:mvn/version "0.10.0"}
-        re-frame                        {:mvn/version "0.12.0"}}
+{:deps {org.clojure/clojure          {:mvn/version "1.10.1"}
+        org.clojure/clojurescript    {:mvn/version "1.10.597"}
+        io.pedestal/pedestal.service {:mvn/version "0.5.7"}
+        io.pedestal/pedestal.route   {:mvn/version "0.5.7"}
+        io.pedestal/pedestal.jetty   {:mvn/version "0.5.7"}
+        org.postgresql/postgresql    {:mvn/version "42.2.10"}
+        seancorfield/next.jdbc       {:mvn/version "1.0.409"}
+        reagent                      {:mvn/version "0.10.0"}
+        re-frame                     {:mvn/version "0.12.0"}}
  :paths ["src" "target" "test" "resources"]
  :aliases {:client-dev {:main-opts ["-m" "figwheel.main" "--build" "client" "--repl"]
+                        :extra-deps {com.bhauman/figwheel-main       {:mvn/version "0.2.3"}
+                                     com.bhauman/rebel-readline-cljs {:mvn/version "0.1.4"}}
                         :extra-paths ["src/daily_log/client"
                                       "test/daily_log/client"]}
            :server-dev {:extra-paths ["dev"]
-                        :extra-deps {org.clojure/tools.namespace {:mvn/version "1.0.0"}}
+                        :extra-deps {org.clojure/tools.namespace {:mvn/version "1.0.0"}
+                                     com.bhauman/rebel-readline  {:mvn/version "0.1.4"}}
                         :main-opts  ["-m" "rebel-readline.main"]}}}
