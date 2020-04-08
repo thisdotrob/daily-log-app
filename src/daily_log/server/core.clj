@@ -1,5 +1,6 @@
 (ns daily-log.server.core
-  (:require [io.pedestal.http :as http]
+  (:require [clojure.set :refer [rename-keys]]
+            [io.pedestal.http :as http]
             [io.pedestal.http.body-params :as params]
             [io.pedestal.http.route :as route]
             [io.pedestal.test :as test]
@@ -18,7 +19,8 @@
 
 (def db {:dbtype "postgres" :dbname "daily_log"
          :stringtype "unspecified" ; HACK to support enums (needed for activity type)
-         :user "daily_log_server" :password "barbwirebracket"})
+         :user (System/getenv "DAILY_LOG_SERVER_PG_USER")
+         :password (System/getenv "DAILY_LOG_SERVER_PG_PASSWORD")})
 
 (def ds (jdbc/get-datasource db))
 
@@ -27,59 +29,74 @@
     (result-set/as-unqualified-modified-maps rs
                                              (assoc opts :label-fn kebab))))
 
+(defn sql-log->log [m]
+  (update m :activity-id (comp keyword str)))
+
+(defn log->sql-log [m]
+  (-> m
+      (update :activity-id name)
+      (update :date name)
+      (rename-keys {:activity-id :activity_id})))
+
+(defn sql-activity->activity [m]
+  (-> m
+      (update :type keyword)
+      (update :id (comp keyword str))
+      (update :user-id (comp keyword str))))
+
 (defn insert-activity! [activity]
   (try
-    [(sql/insert! ds
-                  :activities
-                  {:user_id USER-ID
-                   :name (:name activity)
-                   :type (name (:type activity))}
-                  {:builder-fn as-unqualified-kebab-maps})
+    [(-> (sql/insert! ds
+                      :activities
+                      {:user_id USER-ID
+                       :name (:name activity)
+                       :type (name (:type activity))}
+                      {:builder-fn as-unqualified-kebab-maps})
+         sql-activity->activity)
      nil]
     (catch org.postgresql.util.PSQLException e
       [nil e])))
 
 (defn get-activities-for-user-id! [user-id]
   (try
-    [(map #(update % :type keyword)
-          (sql/find-by-keys ds
+    [(->> (sql/find-by-keys ds
                             :activities
                             {:user_id user-id}
-                            {:builder-fn as-unqualified-kebab-maps}))
+                            {:builder-fn as-unqualified-kebab-maps})
+          (map sql-activity->activity))
      nil]
     (catch org.postgresql.util.PSQLException e
       [nil e])))
 
-(defn update-log! [{:keys [value date activity-id] :as log}]
+(defn update-log! [log]
   (try
-    [(sql/update! ds
-                  :logs
-                  {:value value}
-                  {:date  (name date)
-                   :activity_id activity-id}
-                  {:return-keys true
-                   :builder-fn as-unqualified-kebab-maps})
+    [(-> (sql/update! ds
+                      :logs
+                      (select-keys log [:value])
+                      (select-keys log [:date :activity_id])
+                      {:return-keys true
+                       :builder-fn as-unqualified-kebab-maps})
+         sql-log->log)
      nil]
     (catch org.postgresql.util.PSQLException e
       [nil e])))
 
-(defn insert-log! [{:keys [value date activity-id] :as log}]
+(defn insert-log! [log]
   (try
-    (println ">>>")
-    [(sql/insert! ds
-                  :logs
-                  {:activity_id activity-id
-                   :date (name date)
-                   :value value}
-                  {:builder-fn as-unqualified-kebab-maps})
+    [(-> (sql/insert! ds
+                      :logs
+                      log
+                      {:builder-fn as-unqualified-kebab-maps})
+         sql-log->log)
      nil]
     (catch org.postgresql.util.PSQLException e
       [nil e])))
 
-(defn upsert-log! [{:keys [value date activity-id] :as log}]
-  (let [update-result (update-log! log)]
+(defn upsert-log! [log]
+  (let [sql-log (log->sql-log log)
+        update-result (update-log! sql-log)]
     (if (nil? (first update-result))
-      (insert-log! log)
+      (insert-log! sql-log)
       update-result)))
 
 (defn get-logs-for-user-id! [user-id]
@@ -88,7 +105,8 @@
              ON activity_id = id
              WHERE user_id = ?"]
     (try
-      [(sql/query ds [qry user-id] {:builder-fn as-unqualified-kebab-maps})
+      [(->> (sql/query ds [qry user-id] {:builder-fn as-unqualified-kebab-maps})
+            (map sql-log->log))
        nil]
       (catch org.postgresql.util.PSQLException e
         [nil e]))))

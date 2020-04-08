@@ -3,10 +3,12 @@
         io.pedestal/pedestal.service {:mvn/version "0.5.7"}
         io.pedestal/pedestal.route   {:mvn/version "0.5.7"}
         io.pedestal/pedestal.jetty   {:mvn/version "0.5.7"}
+        org.slf4j/slf4j-simple       {:mvn/version "1.7.28"}
         org.postgresql/postgresql    {:mvn/version "42.2.10"}
         seancorfield/next.jdbc       {:mvn/version "1.0.409"}
         reagent                      {:mvn/version "0.10.0"}
-        re-frame                     {:mvn/version "0.12.0"}}
+        re-frame                     {:mvn/version "0.12.0"}
+        day8.re-frame/http-fx        {:mvn/version "v0.2.0"}}
  :paths ["src" "target" "test" "resources"]
  :aliases {:client-dev {:main-opts ["-m" "figwheel.main" "--build" "client" "--repl"]
                         :extra-deps {com.bhauman/figwheel-main       {:mvn/version "0.2.3"}
@@ -14,6 +16,7 @@
                         :extra-paths ["src/daily_log/client"
                                       "test/daily_log/client"]}
            :server-dev {:extra-paths ["dev"]
-                        :extra-deps {org.clojure/tools.namespace {:mvn/version "1.0.0"}
+                        :extra-deps {com.bhauman/figwheel-main   {:mvn/version "0.2.3"} ;; GRRR!
+                                     org.clojure/tools.namespace {:mvn/version "1.0.0"}
                                      com.bhauman/rebel-readline  {:mvn/version "0.1.4"}}
                         :main-opts  ["-m" "rebel-readline.main"]}}}

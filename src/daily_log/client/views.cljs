@@ -27,19 +27,20 @@
 
 (defn activity-cell [activity-id date]
   (let [t (rf/subscribe [:activity-type activity-id])
-        log (rf/subscribe [:log activity-id date])
+        val (rf/subscribe [:log activity-id date])
         timeout (atom nil)]
     (fn [_ _]
       [:div.col.s2.center-align
        [:span.cell-val.unselectable.clickable
         {:on-mouse-down
          (fn []
-           (do (rf/dispatch [:inc-log activity-id date])
-               (reset! timeout
-                       (js/setTimeout #(rf/dispatch [:reset-log activity-id date])
-                                      1000))))
+           (let [new-val (if (= :bool @t) 1 (inc @val))]
+             (rf/dispatch [:update-log activity-id date new-val])
+             (reset! timeout
+                     (js/setTimeout #(rf/dispatch [:update-log activity-id date 0])
+                                    1000))))
          :on-mouse-up #(js/clearTimeout @timeout)}
-        (log-val->display-str @t @log)]])))
+        (log-val->display-str @t @val)]])))
 
 (defn activity-row [activity-id]
   (let [activity-name @(rf/subscribe [:activity-name activity-id])
@@ -133,8 +134,9 @@
   (let [interacting? (r/atom false)
         new-activity-type (r/atom nil)
         new-activity-name (r/atom "")
-        on-submit #(do (rf/dispatch [:add-activity @new-activity-type
-                                                   @new-activity-name])
+        on-submit #(do (rf/dispatch [:post-activity
+                                     @new-activity-type
+                                     @new-activity-name])
                        (reset! new-activity-type nil)
                        (reset! new-activity-name ""))]
     (fn []

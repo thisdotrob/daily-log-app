@@ -11,6 +11,8 @@
 
 (defn render []
   (dispatch-sync [:initialise-db])
+  (dispatch [:get-activities])
+  (dispatch [:get-logs])
   (r/render [daily-log.client.views/app]
             (.getElementById js/document "app")))
 
