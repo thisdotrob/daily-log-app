@@ -17,10 +17,18 @@
        set))
 
 (defn activity-name [db [_ activity-id]]
-  (get-in db [:activity-names activity-id]))
+  (->> db
+       :activities
+       (filter #(= activity-id (:id %)))
+       first
+       :name))
 
 (defn activity-type [db [_ activity-id]]
-  (get-in db [:activity-types activity-id]))
+  (->> db
+      :activities
+      (filter #(= activity-id (:id %)))
+      first
+      :type))
 
 (defn log [db [_ activity-id date]]
   (or (get-in db [:logs date activity-id])

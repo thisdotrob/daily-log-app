@@ -75,24 +75,24 @@
   (let [interacting-internal? (r/atom false)]
     (reset! value "")
     (fn [_ _]
-    [:div.input-field
-     [:i.material-icons.prefix.unselectable.clickable
-      {:class (if @interacting? "active")
-       :on-click on-submit}
-      "playlist_add"]
-     [:input {:id "new_activity_name"
-              :type "text"
-              :value @value
-              :on-click #(do (reset! interacting? true)
-                             (reset! interacting-internal? true))
-              :on-blur #(do (reset! interacting? false)
-                            (reset! interacting-internal? false))
-              :on-change #(reset! value (-> % .-target .-value))}]
-     [:label {:class (str (if (not= "" @value)
-                            "selected ")
-                          (if @interacting-internal?
-                            "interacting"))}
-      "Activity Name"]])))
+      [:div.input-field
+       [:i.material-icons.prefix.unselectable.clickable
+        {:class (if @interacting? "active")
+         :on-click on-submit}
+        "playlist_add"]
+       [:input {:id "new_activity_name"
+                :type "text"
+                :value @value
+                :on-click #(do (reset! interacting? true)
+                               (reset! interacting-internal? true))
+                :on-blur #(do (reset! interacting? false)
+                              (reset! interacting-internal? false))
+                :on-change #(reset! value (-> % .-target .-value))}]
+       [:label {:class (str (if (not= "" @value)
+                              "selected ")
+                            (if @interacting-internal?
+                              "interacting"))}
+        "Activity Name"]])))
 
 (defn dropdown [option->display-str selected-option interacting? label-text]
   (let [options (keys option->display-str)

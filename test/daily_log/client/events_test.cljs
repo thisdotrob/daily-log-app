@@ -9,10 +9,18 @@
             :uri "/logs"
             :response-format (ajax/edn-response-format)
             :format (ajax/edn-request-format)
-            :on-success [:add-logs]
+            :on-success [:get-logs-success]
             :on-failure [:add-toast :error "Failed to fetch logs"]}
            (-> (sut/get-logs {} [nil])
                :http-xhrio)))))
+
+(deftest get-logs-success
+  (testing "dispatches :add-log for each log"
+    (let [logs [{:activity-id :1 :date :2020-04-09 :value 1}
+                {:activity-id :2 :date :2020-04-10 :value 2}]]
+      (is (= {:dispatch-n [[:add-log :1 :2020-04-09 1]
+                           [:add-log :2 :2020-04-10 2]]}
+             (sut/get-logs-success nil [nil logs]))))))
 
 (deftest get-activities
   (testing "includes the expected :http-xhrio effect in the effects map"
@@ -20,10 +28,17 @@
             :uri "/activities"
             :response-format (ajax/edn-response-format)
             :format (ajax/edn-request-format)
-            :on-success [:add-activities]
+            :on-success [:get-activities-success]
             :on-failure [:add-toast :error "Failed to fetch activities"]}
            (-> (sut/get-activities {} [nil])
                :http-xhrio)))))
+
+(deftest get-activities-success
+  (testing "dispatches :add-activity for each activity"
+    (let [activities [:activity-a :activity-b]]
+      (is (= {:dispatch-n [[:add-activity :activity-a]
+                           [:add-activity :activity-b]]}
+             (sut/get-activities-success nil [nil activities]))))))
 
 (deftest post-activity
   (testing "includes the expected :http-xhrio effect in the effects map"
@@ -37,68 +52,58 @@
                        :type activity-type}
               :response-format (ajax/edn-response-format)
               :format (ajax/edn-request-format)
-              :on-success [:add-activity]
+              :on-success [:post-activity-success]
               :on-failure [:add-toast :error "Failed to save activity"]}
              (-> (sut/post-activity cofx [nil activity-type activity-name])
                  :http-xhrio))))))
 
+(deftest post-activity-success
+  (testing "dispatches :add-activity and :display-display activity"
+    (let [activity {:id :1 :type :int :name "Activity X"}]
+      (is (= {:dispatch-n [[:add-activity activity]
+                           [:display-activity activity]]}
+             (sut/post-activity-success nil [nil activity]))))))
+
 (deftest add-activity
-  (let [date-being-edited :2020-04-02
-        activity-type :bool
-        activity-name "Activity X"
-        db {:date-being-edited date-being-edited}
-        id :100
-        activity {:id id
-                  :type activity-type
-                  :name activity-name}]
-    (testing "It adds a log for the date in focus to ensure the new activity is in the displayed date range"
-      (is (= 0
-             (-> (sut/add-activity db [nil activity])
-                 :logs
-                 date-being-edited
-                 id))))
-    (testing "It adds an entry in :activity-types"
-      (is (= activity-type
-             (-> (sut/add-activity db [nil activity])
-                 :activity-types
-                 id))))
-    (testing "It adds an entry in :activity-names"
-      (is (= activity-name
-             (-> (sut/add-activity db [nil activity])
-                 :activity-names
-                 id))))))
+  (let [db {:activities [{:name "existing toast"
+                          :type :bool
+                          :id :1}]}
+        activity {:id :2
+                  :type :bool
+                  :name "Activity to add"}
+        updated-activities (->> (sut/add-activity db [nil activity])
+                                :activities)]
+    (testing "appends the activity to the list in the db"
+      (is (= 2 (count updated-activities)))
+      (is (= #{:1 :2}
+             (-> (map :id updated-activities)
+                 set))))))
 
 (deftest add-activities
-  (let [date-being-edited :2020-04-02
-        activity-type-a :bool
-        activity-type-b :int
-        activity-name-a "Activity A"
-        activity-name-b "Activity B"
-        activity-id-a :100
-        activity-id-b :101
-        db {:date-being-edited date-being-edited}
-        activities [{:id activity-id-a
-                     :type activity-type-a
-                     :name activity-name-a}
-                    {:id activity-id-b
-                     :type activity-type-b
-                     :name activity-name-b}]]
-    (testing "It adds logs for the date in focus to ensure the new activities are in the displayed date range"
-      (is (= [0 0]
-             (-> (sut/add-activities db [nil activities])
-                 :logs
-                 date-being-edited
-                 ((juxt activity-id-a activity-id-b))))))
-    (testing "It adds entries in :activity-types"
-      (is (= [activity-type-a activity-type-b]
-             (-> (sut/add-activities db [nil activities])
-                 :activity-types
-                 ((juxt activity-id-a activity-id-b))))))
-    (testing "It adds entries in :activity-names"
-      (is (= [activity-name-a activity-name-b]
-             (-> (sut/add-activities db [nil activities])
-                 :activity-names
-                 ((juxt activity-id-a activity-id-b))))))))
+  (let [db {:activities [{:name "existing toast"
+                          :type :bool
+                          :id :1}]}
+        new-activities [{:id :2
+                         :type :bool
+                         :name "Activity to add 1"}
+                        {:id :3
+                         :type :int
+                         :name "Activity to add 2"}]
+        updated-activities (->> (sut/add-activities db [nil new-activities])
+                                :activities)]
+    (testing "appends the activity to the list in the db"
+      (is (= 3 (count updated-activities)))
+      (is (= #{:1 :2 :3}
+             (-> (map :id updated-activities)
+                 set))))))
+
+(deftest display-activity
+  (testing "It adds a log for the date in focus to ensure the new activity is in the displayed date range"
+    (let [date-being-edited :2020-04-09
+          activity-id :1
+          db {:date-being-edited date-being-edited}]
+      (is (= {:dispatch [:add-log activity-id date-being-edited 0]}
+             (sut/display-activity db [nil activity-id]))))))
 
 (deftest add-log
   (testing "It updates existing logs"
@@ -141,26 +146,26 @@
                  :http-xhrio))))))
 
 (deftest add-toast
-    (let [existing-toast-id (random-uuid)
-          db {:toasts [{:content "existing toast"
-                        :type :info
-                        :id existing-toast-id}]}
-          toast-content "message"
-          toast-type :error
-          updated-toasts (->> (sut/add-toast db [nil toast-type toast-content])
-                              :toasts)]
-      (testing "appends the toast to the list in the db"
-        (is (= 2 (count updated-toasts))))
-      (let [new-toast (->> updated-toasts
-                           (filter #(not= existing-toast-id (:id %)))
-                           first)]
-        (testing "gives the new toast an id"
-          (is (uuid? (:id new-toast))))
-        (testing "sets the correct type and content on the new toast"
-          (is (= toast-content
-                 (:content new-toast)))
-          (is (= toast-type
-                 (:type new-toast)))))))
+  (let [existing-toast-id (random-uuid)
+        db {:toasts [{:content "existing toast"
+                      :type :info
+                      :id existing-toast-id}]}
+        toast-content "message"
+        toast-type :error
+        updated-toasts (->> (sut/add-toast db [nil toast-type toast-content])
+                            :toasts)]
+    (testing "appends the toast to the list in the db"
+      (is (= 2 (count updated-toasts))))
+    (let [new-toast (->> updated-toasts
+                         (filter #(not= existing-toast-id (:id %)))
+                         first)]
+      (testing "gives the new toast an id"
+        (is (uuid? (:id new-toast))))
+      (testing "sets the correct type and content on the new toast"
+        (is (= toast-content
+               (:content new-toast)))
+        (is (= toast-type
+               (:type new-toast)))))))
 
 (deftest remove-toast
   (let [toast-to-rm-id (random-uuid)

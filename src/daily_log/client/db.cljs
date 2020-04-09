@@ -7,8 +7,10 @@
 (s/def :activity/type #{:bool :int})
 (s/def :activity/id keyword?)
 
-(s/def ::activity-names (s/map-of :activity/id :activity/name))
-(s/def ::activity-types (s/map-of :activity/id :activity/type))
+(s/def ::activity (s/keys :req-un [:activity/id
+                                   :activity/name
+                                   :activity/type]))
+(s/def ::activities (s/coll-of ::activity))
 
 (s/def ::date d/date?)
 
@@ -21,10 +23,12 @@
 (s/def :toast/content string?)
 (s/def :toast/type #{:info :error})
 
-(s/def ::toasts (s/coll-of (s/keys :req-un [:toast/type :toast/content :toast/id])))
+(s/def ::toast (s/keys :req-un [:toast/type
+                                :toast/content
+                                :toast/id]))
+(s/def ::toasts (s/coll-of ::toast))
 
-(s/def ::db (s/keys :req-un [::activity-names
-                             ::activity-types
+(s/def ::db (s/keys :req-un [::activities
                              ::date-being-edited
                              ::logs
                              ::toasts]))
@@ -39,12 +43,11 @@
 
 (def default-db
   {:date-being-edited nil
-   :activity-names {}
-   :activity-types {}
+   :activities []
    :logs {}
-   :toasts [{:toast-type :error
-             :toast-id (random-uuid)
-             :toast-content "An error toast"}
-            {:toast-type :info
-             :toast-id (random-uuid)
-             :toast-content "An info toast"}]})
+   :toasts [{:type :error
+             :id (random-uuid)
+             :content "An error toast"}
+            {:type :info
+             :id (random-uuid)
+             :content "An info toast"}]})

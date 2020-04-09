@@ -35,33 +35,19 @@
 
 (deftest activity-name
   (testing "returns the name of the activity when found"
-    (let [db {:activity-names {:a "Activity A"
-                               :b "Activity B"}}
-          event nil
+    (let [db {:activities [{:id :a :type :bool :name "Activity A"}
+                           {:id :b :type :int :name "Activity B"}]}
           activity-id :a]
       (is (= "Activity A"
-             (sut/activity-name db [event activity-id])))))
-  (testing "returns nil when not found"
-    (let [db {:activity-names {:a "Activity A"
-                               :b "Activity B"}}
-          event nil
-          activity-id :c]
-      (is (nil? (sut/activity-name db [event activity-id]))))))
+             (sut/activity-name db [nil activity-id]))))))
 
 (deftest activity-type
   (testing "returns the type of the activity when found"
-    (let [db {:activity-types {:a :bool
-                               :b :int}}
-          event nil
+    (let [db {:activities [{:id :a :type :bool :name "Activity A"}
+                           {:id :b :type :int :name "Activity B"}]}
           activity-id :a]
       (is (= :bool
-             (sut/activity-type db [event activity-id])))))
-  (testing "returns nil when not found"
-    (let [db {:activity-types {:a :bool
-                               :b :int}}
-          event nil
-          activity-id :c]
-      (is (nil? (sut/activity-type db [event activity-id]))))))
+             (sut/activity-type db [nil activity-id]))))))
 
 (deftest log
   (testing "returns the log's value when found"

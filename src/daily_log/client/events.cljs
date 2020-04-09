@@ -14,7 +14,7 @@
                 :uri "/logs"
                 :format (ajax/edn-request-format)
                 :response-format (ajax/edn-response-format)
-                :on-success [:add-logs]
+                :on-success [:get-logs-success]
                 :on-failure [:add-toast :error "Failed to fetch logs"]}})
 
 (defn get-activities [_ _]
@@ -22,7 +22,7 @@
                 :uri "/activities"
                 :format (ajax/edn-request-format)
                 :response-format (ajax/edn-response-format)
-                :on-success [:add-activities]
+                :on-success [:get-activities-success]
                 :on-failure [:add-toast :error "Failed to fetch activities"]}})
 
 (defn post-activity [{:keys [db]} [_ activity-type activity-name]]
@@ -33,27 +33,35 @@
                            :type activity-type}
                   :format (ajax/edn-request-format)
                   :response-format (ajax/edn-response-format)
-                  :on-success [:add-activity]
+                  :on-success [:post-activity-success]
                   :on-failure [:add-toast :error "Failed to save activity"]}}))
 
-(defn add-activity [{:keys [date-being-edited] :as db}
-                    [_ {id :id :as activity}]]
-  (-> db
-      (assoc-in [:logs date-being-edited id] 0)
-      (assoc-in [:activity-types id] (:type activity))
-      (assoc-in [:activity-names id] (:name activity))))
+(defn get-activities-success [_ [_ activities]]
+  {:dispatch-n (map #(vector :add-activity %) activities)})
+
+(defn post-activity-success [_ [_ activity]]
+  {:dispatch-n [[:add-activity activity]
+                [:display-activity activity]]})
+
+(defn add-activity [db [_ activity]]
+  (update db :activities conj activity))
 
 (defn add-activities [db [_ activities]]
   (->> (map #(vector nil %) activities)
        (reduce add-activity db)))
 
+(defn display-activity [db [_ activity-id]]
+  {:dispatch [:add-log activity-id (:date-being-edited db) 0]})
+
 (defn add-log [db [_ activity-id date new-val]]
   (assoc-in db [:logs date activity-id] new-val))
 
-(defn add-logs [db [_ logs]]
-  (->> (map #(vector nil (:activity-id %) (:date %) (:value %))
-            logs)
-       (reduce add-log db)))
+(defn get-logs-success [_ [_ logs]]
+  {:dispatch-n (map #(vector :add-log
+                             (:activity-id %)
+                             (:date %)
+                             (:value %))
+                    logs)})
 
 (defn post-log-success [_ _]
   "NOP to avoid warnings in the console"
@@ -104,34 +112,44 @@
  get-activities)
 
 (rf/reg-event-fx
+ :get-activities-success
+ db/check-spec-interceptor
+ get-activities-success)
+
+(rf/reg-event-fx
  :post-activity
  db/check-spec-interceptor
  post-activity)
+
+(rf/reg-event-fx
+ :post-activity-success
+ db/check-spec-interceptor
+ post-activity-success)
 
 (rf/reg-event-db
  :add-activity
  db/check-spec-interceptor
  add-activity)
 
-(rf/reg-event-db
- :add-activities
+(rf/reg-event-fx
+ :display-activity
  db/check-spec-interceptor
- add-activities)
+ display-activity)
 
 (rf/reg-event-fx
  :get-logs
  db/check-spec-interceptor
  get-logs)
 
+(rf/reg-event-fx
+ :get-logs-success
+ db/check-spec-interceptor
+ get-logs-success)
+
 (rf/reg-event-db
  :add-log
  db/check-spec-interceptor
  add-log)
-
-(rf/reg-event-db
- :add-logs
- db/check-spec-interceptor
- add-logs)
 
 (rf/reg-event-fx
  :post-log
