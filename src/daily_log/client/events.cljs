@@ -76,15 +76,15 @@
                 [:post-log activity-id date new-val]]})
 
 (defn add-toast [db [_ toast-type toast-content]]
-  (update db :toasts conj {:toast-type toast-type
-                           :toast-content toast-content
-                           :toast-id (random-uuid)}))
+  (update db :toasts conj {:type toast-type
+                           :content toast-content
+                           :id (random-uuid)}))
 
 (defn remove-toast [db [_ toast-id]]
   (update db
           :toasts
           (fn [toasts]
-            (filter #(not= (:toast-id %) toast-id)
+            (filter #(not= (:id %) toast-id)
                     toasts))))
 
 (rf/reg-cofx

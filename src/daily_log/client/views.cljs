@@ -7,14 +7,14 @@
   (let [toasts (rf/subscribe [:toasts])]
     [:div {:id "toast-container"}
      (for [t @toasts]
-       ^{:key (:toast-id t)}
+       ^{:key (:id t)}
        [:div.toast.clickable
-        {:on-click #(rf/dispatch [:remove-toast (:toast-id t)])
+        {:on-click #(rf/dispatch [:remove-toast (:id t)])
          :class (if (= :error
-                       (:toast-type t))
+                       (:type t))
                   "red lighten-2"
                   "green lighten-2")}
-        [:span (:toast-content t)]])]))
+        [:span (:content t)]])]))
 
 (defn table-header []
   (let [visible-dates (rf/subscribe [:visible-dates])

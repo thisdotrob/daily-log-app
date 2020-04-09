@@ -142,9 +142,9 @@
 
 (deftest add-toast
     (let [existing-toast-id (random-uuid)
-          db {:toasts [{:toast-content "existing toast"
-                        :toast-type :info
-                        :toast-id existing-toast-id}]}
+          db {:toasts [{:content "existing toast"
+                        :type :info
+                        :id existing-toast-id}]}
           toast-content "message"
           toast-type :error
           updated-toasts (->> (sut/add-toast db [nil toast-type toast-content])
@@ -152,25 +152,25 @@
       (testing "appends the toast to the list in the db"
         (is (= 2 (count updated-toasts))))
       (let [new-toast (->> updated-toasts
-                           (filter #(not= existing-toast-id (:toast-id %)))
+                           (filter #(not= existing-toast-id (:id %)))
                            first)]
         (testing "gives the new toast an id"
-          (is (uuid? (:toast-id new-toast))))
+          (is (uuid? (:id new-toast))))
         (testing "sets the correct type and content on the new toast"
           (is (= toast-content
-                 (:toast-content new-toast)))
+                 (:content new-toast)))
           (is (= toast-type
-                 (:toast-type new-toast)))))))
+                 (:type new-toast)))))))
 
 (deftest remove-toast
   (let [toast-to-rm-id (random-uuid)
         toast-to-keep-id (random-uuid)
-        db {:toasts [{:toast-id toast-to-keep-id
-                      :toast-type :info
-                      :toast-content "this toast should remain"}
-                     {:toast-id toast-to-rm-id
-                      :toast-type :error
-                      :toast-content "this toast should be removed"}]}]
+        db {:toasts [{:id toast-to-keep-id
+                      :type :info
+                      :content "this toast should remain"}
+                     {:id toast-to-rm-id
+                      :type :error
+                      :content "this toast should be removed"}]}]
     (is (= 1
            (->> (sut/remove-toast db [nil toast-to-rm-id])
                 :toasts
@@ -179,4 +179,4 @@
            (->> (sut/remove-toast db [nil toast-to-rm-id])
                 :toasts
                 first
-                :toast-id)))))
+                :id)))))

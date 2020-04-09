@@ -3,31 +3,25 @@
             [cljs.spec.alpha :as s]
             [daily-log.client.dates :as d]))
 
-(s/def ::activity-id keyword?)
+(s/def :activity/name string?)
+(s/def :activity/type #{:bool :int})
+(s/def :activity/id keyword?)
 
-(s/def ::activity-name string?)
-
-(s/def ::activity-names (s/map-of ::activity-id ::activity-name))
-
-(s/def ::activity-type #{:bool :int})
-
-(s/def ::activity-types (s/map-of ::activity-id ::activity-type))
+(s/def ::activity-names (s/map-of :activity/id :activity/name))
+(s/def ::activity-types (s/map-of :activity/id :activity/type))
 
 (s/def ::date d/date?)
 
 (s/def ::date-being-edited ::date)
 
 (s/def ::logs (s/map-of ::date
-                        (s/map-of ::activity-id
-                                  int?)))
+                        (s/map-of :activity/id int?)))
 
-(s/def ::toast-id uuid?)
+(s/def :toast/id uuid?)
+(s/def :toast/content string?)
+(s/def :toast/type #{:info :error})
 
-(s/def ::toast-content string?)
-
-(s/def ::toast-type #{:info :error})
-
-(s/def ::toasts (s/coll-of (s/keys ::req-un [::toast-type ::toast-content ::toast-id])))
+(s/def ::toasts (s/coll-of (s/keys :req-un [:toast/type :toast/content :toast/id])))
 
 (s/def ::db (s/keys :req-un [::activity-names
                              ::activity-types
