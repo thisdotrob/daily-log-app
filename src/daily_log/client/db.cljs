@@ -21,10 +21,19 @@
                         (s/map-of ::activity-id
                                   int?)))
 
+(s/def ::toast-id uuid?)
+
+(s/def ::toast-content string?)
+
+(s/def ::toast-type #{:info :error})
+
+(s/def ::toasts (s/coll-of (s/keys ::req-un [::toast-type ::toast-content ::toast-id])))
+
 (s/def ::db (s/keys :req-un [::activity-names
                              ::activity-types
                              ::date-being-edited
-                             ::logs]))
+                             ::logs
+                             ::toasts]))
 
 (defn check-and-throw
   "Throws an exception if `db` doesn't match the Spec `a-spec`."
@@ -38,4 +47,10 @@
   {:date-being-edited nil
    :activity-names {}
    :activity-types {}
-   :logs {}})
+   :logs {}
+   :toasts [{:toast-type :error
+             :toast-id (random-uuid)
+             :toast-content "An error toast"}
+            {:toast-type :info
+             :toast-id (random-uuid)
+             :toast-content "An info toast"}]})

@@ -3,6 +3,19 @@
             [re-frame.core :as rf]
             [daily-log.client.dates :as d]))
 
+(defn toasts []
+  (let [toasts (rf/subscribe [:toasts])]
+    [:div {:id "toast-container"}
+     (for [t @toasts]
+       ^{:key (:toast-id t)}
+       [:div.toast.clickable
+        {:on-click #(rf/dispatch [:remove-toast (:toast-id t)])
+         :class (if (= :error
+                       (:toast-type t))
+                  "red lighten-2"
+                  "green lighten-2")}
+        [:span (:toast-content t)]])]))
+
 (defn table-header []
   (let [visible-dates (rf/subscribe [:visible-dates])
         date-being-edited (rf/subscribe [:date-being-edited])]
@@ -154,6 +167,7 @@
 (defn app []
   (let []
     [:div.container.grey.lighten-3.z-depth-1.mt2
+     [toasts]
      [table-header]
      [table-body]
      [new-activity-form]]))

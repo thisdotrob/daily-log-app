@@ -9,7 +9,8 @@
             :uri "/logs"
             :response-format (ajax/edn-response-format)
             :format (ajax/edn-request-format)
-            :on-success [:add-logs]}
+            :on-success [:add-logs]
+            :on-failure [:add-toast :error "Failed to fetch logs"]}
            (-> (sut/get-logs {} [nil])
                :http-xhrio)))))
 
@@ -19,7 +20,8 @@
             :uri "/activities"
             :response-format (ajax/edn-response-format)
             :format (ajax/edn-request-format)
-            :on-success [:add-activities]}
+            :on-success [:add-activities]
+            :on-failure [:add-toast :error "Failed to fetch activities"]}
            (-> (sut/get-activities {} [nil])
                :http-xhrio)))))
 
@@ -35,7 +37,8 @@
                        :type activity-type}
               :response-format (ajax/edn-response-format)
               :format (ajax/edn-request-format)
-              :on-success [:add-activity]}
+              :on-success [:add-activity]
+              :on-failure [:add-toast :error "Failed to save activity"]}
              (-> (sut/post-activity cofx [nil activity-type activity-name])
                  :http-xhrio))))))
 
@@ -132,6 +135,48 @@
                        :value value}
               :format (ajax/edn-request-format)
               :response-format (ajax/edn-response-format)
-              :on-success [:post-log-success]}
+              :on-success [:post-log-success]
+              :on-failure [:add-toast :error "Failed to update log"]}
              (-> (sut/post-log db [nil activity-id date value])
                  :http-xhrio))))))
+
+(deftest add-toast
+    (let [existing-toast-id (random-uuid)
+          db {:toasts [{:toast-content "existing toast"
+                        :toast-type :info
+                        :toast-id existing-toast-id}]}
+          toast-content "message"
+          toast-type :error
+          updated-toasts (->> (sut/add-toast db [nil toast-type toast-content])
+                              :toasts)]
+      (testing "appends the toast to the list in the db"
+        (is (= 2 (count updated-toasts))))
+      (let [new-toast (->> updated-toasts
+                           (filter #(not= existing-toast-id (:toast-id %)))
+                           first)]
+        (testing "gives the new toast an id"
+          (is (uuid? (:toast-id new-toast))))
+        (testing "sets the correct type and content on the new toast"
+          (is (= toast-content
+                 (:toast-content new-toast)))
+          (is (= toast-type
+                 (:toast-type new-toast)))))))
+
+(deftest remove-toast
+  (let [toast-to-rm-id (random-uuid)
+        toast-to-keep-id (random-uuid)
+        db {:toasts [{:toast-id toast-to-keep-id
+                      :toast-type :info
+                      :toast-content "this toast should remain"}
+                     {:toast-id toast-to-rm-id
+                      :toast-type :error
+                      :toast-content "this toast should be removed"}]}]
+    (is (= 1
+           (->> (sut/remove-toast db [nil toast-to-rm-id])
+                :toasts
+                count)))
+    (is (= toast-to-keep-id
+           (->> (sut/remove-toast db [nil toast-to-rm-id])
+                :toasts
+                first
+                :toast-id)))))

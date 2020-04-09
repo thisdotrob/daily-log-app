@@ -14,14 +14,16 @@
                 :uri "/logs"
                 :format (ajax/edn-request-format)
                 :response-format (ajax/edn-response-format)
-                :on-success [:add-logs]}})
+                :on-success [:add-logs]
+                :on-failure [:add-toast :error "Failed to fetch logs"]}})
 
 (defn get-activities [_ _]
   {:http-xhrio {:method :get
                 :uri "/activities"
                 :format (ajax/edn-request-format)
                 :response-format (ajax/edn-response-format)
-                :on-success [:add-activities]}})
+                :on-success [:add-activities]
+                :on-failure [:add-toast :error "Failed to fetch activities"]}})
 
 (defn post-activity [{:keys [db]} [_ activity-type activity-name]]
   (let [date-being-edited (:date-being-edited db)]
@@ -31,7 +33,8 @@
                            :type activity-type}
                   :format (ajax/edn-request-format)
                   :response-format (ajax/edn-response-format)
-                  :on-success [:add-activity]}}))
+                  :on-success [:add-activity]
+                  :on-failure [:add-toast :error "Failed to save activity"]}}))
 
 (defn add-activity [{:keys [date-being-edited] :as db}
                     [_ {id :id :as activity}]]
@@ -64,12 +67,25 @@
                          :value value}
                 :format (ajax/edn-request-format)
                 :response-format (ajax/edn-response-format)
-                :on-success [:post-log-success]}})
+                :on-success [:post-log-success]
+                :on-failure [:add-toast :error "Failed to update log"]}})
 
 
 (defn update-log [_ [_ activity-id date new-val]]
   {:dispatch-n [[:add-log activity-id date new-val]
                 [:post-log activity-id date new-val]]})
+
+(defn add-toast [db [_ toast-type toast-content]]
+  (update db :toasts conj {:toast-type toast-type
+                           :toast-content toast-content
+                           :toast-id (random-uuid)}))
+
+(defn remove-toast [db [_ toast-id]]
+  (update db
+          :toasts
+          (fn [toasts]
+            (filter #(not= (:toast-id %) toast-id)
+                    toasts))))
 
 (rf/reg-cofx
  :today
@@ -131,3 +147,13 @@
  :update-log
  db/check-spec-interceptor
  update-log)
+
+(rf/reg-event-db
+ :add-toast
+ db/check-spec-interceptor
+ add-toast)
+
+(rf/reg-event-db
+ :remove-toast
+ db/check-spec-interceptor
+ remove-toast)

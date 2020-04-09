@@ -29,6 +29,9 @@
 (defn logs [db _]
   (:logs db))
 
+(defn toasts [db _]
+  (:toasts db))
+
 (rf/reg-sub :date-being-edited date-being-edited)
 (rf/reg-sub :visible-dates visible-dates)
 (rf/reg-sub :visible-activity-ids
@@ -39,3 +42,4 @@
 (rf/reg-sub :activity-type activity-type)
 (rf/reg-sub :log log)
 (rf/reg-sub :logs logs)
+(rf/reg-sub :toasts toasts)
