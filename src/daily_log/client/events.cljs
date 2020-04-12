@@ -41,7 +41,7 @@
 
 (defn post-activity-success [_ [_ activity]]
   {:dispatch-n [[:add-activity activity]
-                [:display-activity activity]]})
+                [:display-activity (:id activity)]]})
 
 (defn add-activity [db [_ activity]]
   (update db :activities conj activity))
@@ -50,7 +50,7 @@
   (->> (map #(vector nil %) activities)
        (reduce add-activity db)))
 
-(defn display-activity [db [_ activity-id]]
+(defn display-activity [{db :db} [_ activity-id]]
   {:dispatch [:add-log activity-id (:date-being-edited db) 0]})
 
 (defn add-log [db [_ activity-id date new-val]]

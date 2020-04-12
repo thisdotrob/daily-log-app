@@ -61,7 +61,7 @@
   (testing "dispatches :add-activity and :display-display activity"
     (let [activity {:id :1 :type :int :name "Activity X"}]
       (is (= {:dispatch-n [[:add-activity activity]
-                           [:display-activity activity]]}
+                           [:display-activity :1]]}
              (sut/post-activity-success nil [nil activity]))))))
 
 (deftest add-activity
@@ -103,7 +103,7 @@
           activity-id :1
           db {:date-being-edited date-being-edited}]
       (is (= {:dispatch [:add-log activity-id date-being-edited 0]}
-             (sut/display-activity db [nil activity-id]))))))
+             (sut/display-activity {:db db} [nil activity-id]))))))
 
 (deftest add-log
   (testing "It updates existing logs"

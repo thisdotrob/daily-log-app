@@ -70,34 +70,34 @@
 
 (defn update-log! [log]
   (try
-    [(-> (sql/update! ds
-                      :logs
-                      (select-keys log [:value])
-                      (select-keys log [:date :activity_id])
-                      {:return-keys true
-                       :builder-fn as-unqualified-kebab-maps})
-         sql-log->log)
+    [(sql/update! ds
+                  :logs
+                  (select-keys log [:value])
+                  (select-keys log [:date :activity_id])
+                  {:return-keys true
+                   :builder-fn as-unqualified-kebab-maps})
      nil]
     (catch org.postgresql.util.PSQLException e
       [nil e])))
 
 (defn insert-log! [log]
   (try
-    [(-> (sql/insert! ds
-                      :logs
-                      log
-                      {:builder-fn as-unqualified-kebab-maps})
-         sql-log->log)
+    [(sql/insert! ds
+                  :logs
+                  log
+                  {:builder-fn as-unqualified-kebab-maps})
      nil]
     (catch org.postgresql.util.PSQLException e
       [nil e])))
 
 (defn upsert-log! [log]
   (let [sql-log (log->sql-log log)
-        update-result (update-log! sql-log)]
-    (if (nil? (first update-result))
-      (insert-log! sql-log)
-      update-result)))
+        update-result (update-log! sql-log)
+        result (if (some some? update-result)
+                 update-result
+                 (insert-log! sql-log))]
+    [(some-> result first sql-log->log)
+     (second result)]))
 
 (defn get-logs-for-user-id! [user-id]
   (let [qry "SELECT activity_id, date, value

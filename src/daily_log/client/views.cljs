@@ -71,6 +71,21 @@
        ^{:key id}
        [activity-row id]))])
 
+(defn autocomplete-dropdown [value]
+  (let [activities (rf/subscribe [:search-activities @value])]
+    [:ul.autocomplete-content.dropdown-content
+     {:style {:display "block" :top "40px"}}
+     (for [{:keys [id search-result]} @activities]
+       ^{:key id}
+       [:li
+        {:on-click #(do (rf/dispatch [:display-activity id])
+                        (reset! value ""))}
+        [:span
+         (for [{:keys [type val]} search-result]
+           (if (= :non-match type)
+             ^{:key (random-uuid)} val
+             ^{:key (random-uuid)} [:span.highlight val]))]])]))
+
 (defn text-input [value interacting? on-submit]
   (let [interacting-internal? (r/atom false)]
     (reset! value "")
@@ -88,6 +103,7 @@
                 :on-blur #(do (reset! interacting? false)
                               (reset! interacting-internal? false))
                 :on-change #(reset! value (-> % .-target .-value))}]
+       [autocomplete-dropdown value]
        [:label {:class (str (if (not= "" @value)
                               "selected ")
                             (if @interacting-internal?

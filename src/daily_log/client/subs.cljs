@@ -40,6 +40,41 @@
 (defn toasts [db _]
   (:toasts db))
 
+(defn search [search-text search-val]
+  (let [p (str "(?i)(.*)(" search-val ")(.*)")
+        r (re-pattern p)]
+    (loop [s search-text
+           result []]
+      (let [[_ rest match non-match] (re-matches r s)]
+        (cond
+          (= "" s) result
+          (nil? match) (cons {:type :non-match
+                              :val s}
+                             result)
+          (not= "" non-match) (recur (str rest match)
+                                     (cons {:type :non-match
+                                            :val non-match}
+                                           result))
+          :else (recur rest
+                       (cons {:type :match
+                              :val match}
+                             result)))))))
+
+(defn has-matches? [search-result]
+  (-> :type
+      (map search-result)
+      set
+      (contains? :match)))
+
+(defn search-activities [{:keys [activities] :as db} [_ search-val]]
+  (if (= "" search-val)
+    []
+    (let [activities (map #(assoc % :search-result (search (:name %)
+                                                           search-val))
+                          activities)]
+      (filter #(has-matches? (:search-result %))
+              activities))))
+
 (rf/reg-sub :date-being-edited date-being-edited)
 (rf/reg-sub :visible-dates visible-dates)
 (rf/reg-sub :visible-activity-ids
@@ -51,3 +86,4 @@
 (rf/reg-sub :log log)
 (rf/reg-sub :logs logs)
 (rf/reg-sub :toasts toasts)
+(rf/reg-sub :search-activities search-activities)

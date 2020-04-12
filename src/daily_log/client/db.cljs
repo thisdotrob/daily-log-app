@@ -45,9 +45,4 @@
   {:date-being-edited nil
    :activities []
    :logs {}
-   :toasts [{:type :error
-             :id (random-uuid)
-             :content "An error toast"}
-            {:type :info
-             :id (random-uuid)
-             :content "An info toast"}]})
+   :toasts []})
