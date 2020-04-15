@@ -21,6 +21,7 @@
 
 (def db {:dbtype "postgres" :dbname "daily_log"
          :stringtype "unspecified" ; HACK to support enums (needed for activity type)
+         :host (System/getenv "DAILY_LOG_SERVER_PG_HOST")
          :user (System/getenv "DAILY_LOG_SERVER_PG_USER")
          :password (System/getenv "DAILY_LOG_SERVER_PG_PASSWORD")})
 
