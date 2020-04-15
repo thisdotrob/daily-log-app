@@ -8,8 +8,7 @@ CREATE TYPE activity_type AS ENUM ('int', 'bool');
 
 CREATE TABLE users (
        id SERIAL PRIMARY KEY,
-       name VARCHAR(100) CHECK (name = '' IS FALSE) UNIQUE,
-       password VARCHAR(100) CHECK (password = '' IS FALSE)
+       name VARCHAR(100) CHECK (name = '' IS FALSE) UNIQUE
 );
 
 CREATE TABLE activities (
