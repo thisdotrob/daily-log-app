@@ -1,5 +1,5 @@
 {:log-syntax-error-style :concise
  :auto-testing true
- :open-url "http://localhost:8890/index.html"
+ :open-url "http://localhost:8890"
  :helpful-classpaths false
- :watch-dirs ["src/daily_log/client" "test/daily_log/client"]}
+ :watch-dirs ["src/cljs" "test/cljs"]}

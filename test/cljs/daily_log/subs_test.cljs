@@ -1,6 +1,6 @@
 (ns daily-log.subs-test
   (:require [cljs.test :refer (deftest is testing)]
-            [daily-log.client.subs :as sut]))
+            [daily-log.subs :as sut]))
 
 (deftest visible-dates
   (testing "returns two sequential dates either side of :date-being-edited"

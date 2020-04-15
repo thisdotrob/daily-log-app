@@ -1,7 +1,7 @@
 (ns daily-log.events-test
   (:require [cljs.test :refer (deftest is testing)]
             [ajax.edn :as ajax]
-            [daily-log.client.events :as sut]))
+            [daily-log.events :as sut]))
 
 (deftest get-logs
   (testing "includes the expected :http-xhrio effect in the effects map"

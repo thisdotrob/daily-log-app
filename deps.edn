@@ -1,22 +1,35 @@
-{:deps {org.clojure/clojure          {:mvn/version "1.10.1"}
-        org.clojure/clojurescript    {:mvn/version "1.10.597"}
-        io.pedestal/pedestal.service {:mvn/version "0.5.7"}
-        io.pedestal/pedestal.route   {:mvn/version "0.5.7"}
-        io.pedestal/pedestal.jetty   {:mvn/version "0.5.7"}
-        org.slf4j/slf4j-simple       {:mvn/version "1.7.28"}
-        org.postgresql/postgresql    {:mvn/version "42.2.10"}
-        seancorfield/next.jdbc       {:mvn/version "1.0.409"}
-        reagent                      {:mvn/version "0.10.0"}
-        re-frame                     {:mvn/version "0.12.0"}
-        day8.re-frame/http-fx        {:mvn/version "v0.2.0"}}
- :paths ["src" "target" "test" "resources"]
- :aliases {:client-dev {:main-opts ["-m" "figwheel.main" "--build" "client" "--repl"]
-                        :extra-deps {com.bhauman/figwheel-main       {:mvn/version "0.2.3"}
-                                     com.bhauman/rebel-readline-cljs {:mvn/version "0.1.4"}}
-                        :extra-paths ["src/daily_log/client"
-                                      "test/daily_log/client"]}
-           :server-dev {:extra-paths ["dev"]
-                        :extra-deps {com.bhauman/figwheel-main   {:mvn/version "0.2.3"} ;; GRRR!
-                                     org.clojure/tools.namespace {:mvn/version "1.0.0"}
-                                     com.bhauman/rebel-readline  {:mvn/version "0.1.4"}}
-                        :main-opts  ["-m" "rebel-readline.main"]}}}
+{:deps {org.clojure/clojure {:mvn/version "1.10.1"}}
+ :aliases {:client-prod {:main-opts ["-m" "figwheel.main" "--optimizations" "advanced" "--build-once" "client"]
+                         :paths ["src/cljs"]
+                         :extra-deps {org.clojure/clojurescript {:mvn/version "1.10.597"}
+                                      reagent                   {:mvn/version "0.10.0"}
+                                      re-frame                  {:mvn/version "0.12.0"}
+                                      day8.re-frame/http-fx     {:mvn/version "v0.2.0"}
+                                      com.bhauman/figwheel-main {:mvn/version "0.2.3"}}}
+           :client-dev {:main-opts ["-m" "figwheel.main" "--build" "client" "--repl"]
+                        :paths ["src/cljs" "test/cljs"]
+                        :extra-deps {org.clojure/clojurescript       {:mvn/version "1.10.597"}
+                                     reagent                         {:mvn/version "0.10.0"}
+                                     re-frame                        {:mvn/version "0.12.0"}
+                                     day8.re-frame/http-fx           {:mvn/version "v0.2.0"}
+                                     com.bhauman/figwheel-main       {:mvn/version "0.2.3"}
+                                     com.bhauman/rebel-readline-cljs {:mvn/version "0.1.4"}}}
+           :server-prod {:extra-paths ["src/clj" "target" "resources"]
+                         :extra-deps {io.pedestal/pedestal.service {:mvn/version "0.5.7"}
+                                      io.pedestal/pedestal.route   {:mvn/version "0.5.7"}
+                                      io.pedestal/pedestal.jetty   {:mvn/version "0.5.7"}
+                                      org.slf4j/slf4j-simple       {:mvn/version "1.7.28"}
+                                      org.postgresql/postgresql    {:mvn/version "42.2.10"}
+                                      seancorfield/next.jdbc       {:mvn/version "1.0.409"}
+                                      hiccup                       {:mvn/version "1.0.5"}}}
+           :server-dev {:main-opts  ["-m" "rebel-readline.main"]
+                        :paths ["dev/clj" "src/clj" "test/clj" "target" "resources"]
+                        :extra-deps {io.pedestal/pedestal.service {:mvn/version "0.5.7"}
+                                     io.pedestal/pedestal.route   {:mvn/version "0.5.7"}
+                                     io.pedestal/pedestal.jetty   {:mvn/version "0.5.7"}
+                                     org.slf4j/slf4j-simple       {:mvn/version "1.7.28"}
+                                     org.postgresql/postgresql    {:mvn/version "42.2.10"}
+                                     seancorfield/next.jdbc       {:mvn/version "1.0.409"}
+                                     hiccup                       {:mvn/version "1.0.5"}
+                                     org.clojure/tools.namespace  {:mvn/version "1.0.0"}
+                                     com.bhauman/rebel-readline   {:mvn/version "0.1.4"}}}}}

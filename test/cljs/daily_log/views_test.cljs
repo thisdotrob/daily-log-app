@@ -1,6 +1,6 @@
 (ns daily-log.views-test
   (:require [cljs.test :refer (deftest is testing)]
-            [daily-log.client.views :as sut]))
+            [daily-log.views :as sut]))
 
 (deftest log-val->display-str
   (testing "converts 0 to \"No\" when type is :bool"

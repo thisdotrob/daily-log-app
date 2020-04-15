@@ -1,9 +1,9 @@
-(ns daily-log.client.events
+(ns daily-log.events
   (:require [re-frame.core :as rf]
             [day8.re-frame.http-fx]
             [ajax.edn :as ajax]
-            [daily-log.client.dates :as d]
-            [daily-log.client.db :as db]))
+            [daily-log.dates :as d]
+            [daily-log.db :as db]))
 
 (defn initialise-db [{:keys [today]} _]
   {:db (assoc db/default-db

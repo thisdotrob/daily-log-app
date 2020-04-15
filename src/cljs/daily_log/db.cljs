@@ -1,7 +1,7 @@
-(ns daily-log.client.db
+(ns daily-log.db
   (:require [re-frame.core :as rf]
             [cljs.spec.alpha :as s]
-            [daily-log.client.dates :as d]))
+            [daily-log.dates :as d]))
 
 (s/def :activity/name string?)
 (s/def :activity/type #{:bool :int})

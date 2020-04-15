@@ -1,7 +1,7 @@
-(ns daily-log.client.views
+(ns daily-log.views
   (:require [reagent.core :as r]
             [re-frame.core :as rf]
-            [daily-log.client.dates :as d]))
+            [daily-log.dates :as d]))
 
 (defn toasts []
   (let [toasts (rf/subscribe [:toasts])]

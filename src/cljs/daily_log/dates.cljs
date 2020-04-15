@@ -1,4 +1,4 @@
-(ns daily-log.client.dates
+(ns daily-log.dates
   (:require [date-fns :as df]))
 
 (defn- date->js-date [d]

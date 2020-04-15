@@ -1,4 +1,4 @@
-(ns daily-log.server.core
+(ns daily-log.core
   (:require [clojure.set :refer [rename-keys]]
             [io.pedestal.http :as http]
             [io.pedestal.http.body-params :as params]
@@ -6,7 +6,9 @@
             [io.pedestal.test :as test]
             [next.jdbc.sql :as sql]
             [next.jdbc.result-set :as result-set]
-            [next.jdbc :as jdbc]))
+            [next.jdbc :as jdbc]
+            [hiccup.page :as hiccup])
+  (:gen-class))
 
 (extend-protocol result-set/ReadableColumn
   java.sql.Date
@@ -151,9 +153,31 @@
 
 (def body-parser (params/body-params))
 
+(def index
+  {:name :index
+   :enter
+   (fn [context]
+     (let [page (hiccup/html5
+                 [:head
+                  [:link {:href "https://fonts.googleapis.com/icon?family=Material+Icons"
+                          :rel "stylesheet"}]
+                  [:link {:href "https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+                          :rel "stylesheet"
+                          :type "text/css"}]
+                  [:link {:href "css/style.css"
+                          :rel "stylesheet"
+                          :type "text/css"}]]
+                 [:body.grey.lighten-2 {:style {:height "100%" :overflow "hidden"}}
+                  [:div {:id "app"}]
+                  [:script {:src "cljs-out/client-main.js"}]])]
+       (assoc context :response {:headers {"Content-Type" "text/html"}
+                                 :status 200
+                                 :body page})))})
+
 (def routes
   (route/expand-routes
-   #{["/activities" :post [body-parser insert-activity]]
+   #{["/" :get [index]]
+     ["/activities" :post [body-parser insert-activity]]
      ["/activities" :get [get-activities]]
      ["/logs" :post [body-parser upsert-log]]
      ["/logs" :get [get-logs]]}))
@@ -165,5 +189,5 @@
    ::http/secure-headers {:content-security-policy-settings "object-src 'none'; script-src 'self' 'unsafe-eval' 'unsafe-inline'"}
    ::http/resource-path "/public"})
 
-(defn start []
+(defn -main []
   (http/start (http/create-server service-map)))

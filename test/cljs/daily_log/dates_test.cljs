@@ -1,6 +1,6 @@
 (ns daily-log.dates-test
   (:require [cljs.test :refer (deftest is testing)]
-            [daily-log.client.dates :as sut]))
+            [daily-log.dates :as sut]))
 
 (deftest ->DD-str
   (testing "converts a keyword date into a DD format string"
