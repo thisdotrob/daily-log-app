@@ -17,8 +17,12 @@
            java.security.KeyFactory
            java.security.spec.RSAPublicKeySpec
            java.security.Signature
+           java.security.Security
            (org.bouncycastle.util BigIntegers))
   (:gen-class))
+
+(when (nil? (Security/getProvider "BC"))
+  (Security/addProvider (org.bouncycastle.jce.provider.BouncyCastleProvider.)))
 
 (extend-protocol result-set/ReadableColumn
   java.sql.Date
