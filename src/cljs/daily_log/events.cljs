@@ -83,7 +83,7 @@
   {:dispatch-n [[:add-log activity-id date new-val]
                 [:post-log activity-id date new-val]]})
 
-(defn add-toast [db [_ toast-type toast-content]]
+(defn add-toast [db [_ toast-type toast-content x]]
   (update db :toasts conj {:type toast-type
                            :content toast-content
                            :id (random-uuid)}))

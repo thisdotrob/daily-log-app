@@ -1,9 +1,10 @@
 # Daily Log App
 
 ## Development
+### Starting
 Start the server compiler, repl and service:
 ```
-clojure -A:server-dev
+clojure -A:server-dev -m rebel-readline.main
 (start-dev)
 ```
 
@@ -18,6 +19,14 @@ Your browser should then open the app, at `http://localhost:8890/index.html`.
 
 The test runner can be found  at
 `http://localhost:9500/figwheel-extra-main/auto-testing`.
+
+### Restarting
+From the Clojure repl:
+```
+(stop-dev)
+(refresh)
+(start-dev)
+```
 
 ## Prod build
 

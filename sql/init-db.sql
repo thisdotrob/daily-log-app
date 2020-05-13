@@ -8,7 +8,7 @@ CREATE TYPE activity_type AS ENUM ('int', 'bool');
 
 CREATE TABLE users (
        id SERIAL PRIMARY KEY,
-       name VARCHAR(100) CHECK (name = '' IS FALSE) UNIQUE
+       cognito_sub UUID UNIQUE
 );
 
 CREATE TABLE activities (
