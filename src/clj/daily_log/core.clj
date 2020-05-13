@@ -21,6 +21,8 @@
            (org.bouncycastle.util BigIntegers))
   (:gen-class))
 
+(def REDIRECT-URI (System/getenv "DAILY_LOG_SERVER_REDIRECT_URI"))
+
 (when (nil? (Security/getProvider "BC"))
   (Security/addProvider (org.bouncycastle.jce.provider.BouncyCastleProvider.)))
 
@@ -269,7 +271,7 @@
   (let [params {:grant_type "authorization_code"
                 :code code
                 :client_id (System/getenv "DAILY_LOG_SERVER_COGNITO_CLIENT_ID")
-                :redirect_uri "http://localhost:8890"}
+                :redirect_uri REDIRECT-URI}
         {:keys [status body]} (http-client/post "https://auth.spacetrumpet.co.uk/oauth2/token"
                                                 {:headers {"Authorization" token-auth-header}
                                                  :throw-exceptions false
@@ -314,12 +316,13 @@
                              (System/getenv "DAILY_LOG_SERVER_COGNITO_CLIENT_ID")
                              "&response_type=code"
                              "&scope=aws.cognito.signin.user.admin+email+openid+phone+profile"
-                             "&redirect_uri=http://localhost:8890")}})
+                             "&redirect_uri="
+                             REDIRECT-URI)}})
 
 (defn successful-login-response [tokens]
   {:status 302
    :session {:tokens tokens}
-   :headers {"Location" "http://localhost:8890/"}})
+   :headers {"Location" REDIRECT-URI}})
 
 (def login
   {:name :login
