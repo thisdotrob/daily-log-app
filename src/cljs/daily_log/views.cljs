@@ -38,21 +38,51 @@
     (if (zero? val) "No" "Yes")
     (str val)))
 
+(defn new-value-modal [toggle update-log show-modal?]
+  (let [interacting? (r/atom false)
+        value (r/atom "")]
+    (fn [_ _ _]
+      [:div.modal {:style {:display (if @show-modal? "block" "none")}}
+       [:div.modal-content
+        [:div.input-field
+         [:input {:id "new_activity_value"
+                  :type "text"
+                  :value @value
+                  :on-click #(reset! interacting? true)
+                  :on-blur #(reset! interacting? false)
+                  :on-change #(reset! value (-> % .-target .-value))}]
+
+         [:label {:class (str (if (not= "" @value) "selected ")
+                              (if @interacting? "interacting"))}
+          "New Value"]]]
+       [:div.modal-footer
+        [:a.modal-close.btn-flat
+         {:on-click #(do (toggle)
+                         (reset! value ""))}
+         "Cancel"]
+        [:a.modal-close.btn-flat
+         {:on-click #(do (toggle)
+                         (update-log (js/parseInt @value))
+                         (reset! value ""))}
+         "Save"]]])))
+
 (defn activity-cell [activity-id date]
   (let [t (rf/subscribe [:activity-type activity-id])
         val (rf/subscribe [:log activity-id date])
-        timeout (atom nil)]
+        timeout (r/atom nil)
+        show-modal? (r/atom false)
+        toggle-modal #(swap! show-modal? not)
+        update-log #(rf/dispatch [:update-log activity-id date %])]
     (fn [_ _]
       [:div.col.s2.center-align
+       [new-value-modal toggle-modal update-log show-modal?]
        [:span.cell-val.unselectable.clickable
         {:on-mouse-down
-         (fn []
-           (let [new-val (if (= :bool @t) 1 (inc @val))]
-             (rf/dispatch [:update-log activity-id date new-val])
-             (reset! timeout
-                     (js/setTimeout #(rf/dispatch [:update-log activity-id date 0])
-                                    1000))))
-         :on-mouse-up #(js/clearTimeout @timeout)}
+         #(reset! timeout (js/setTimeout toggle-modal 1000))
+         :on-mouse-up
+         #(let [new-val (if (= :bool @t) 1 (inc @val))]
+            (js/clearTimeout @timeout)
+            (update-log new-val))}
         (log-val->display-str @t @val)]])))
 
 (defn activity-row [activity-id]
